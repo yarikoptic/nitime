@@ -2,7 +2,6 @@
 """Bressler GC examples.
 
 Reference: M. Ding, Y. Chen, and S.L. Bressler, "Granger Causality: Basic Theory and Application to Neuroscience," 2008.
-
 """
 
 import numpy as np
@@ -16,9 +15,7 @@ from nitime import utils
 # For interactive testing
 reload(granger)
 
-
 ### Example 1
-
 
 # Generate noise with defined covariance structure
 #   two noise vectors: variance 1, variance 0.7, covariance 0.4
