@@ -161,9 +161,13 @@ def circularize(x,bottom=0,top=2*np.pi,deg=False):
 # Correlation utils
 #-----------------------------------------------------------------------------
 
+# XXX - these need better docstrings with parameters and examples.
+
 def autocorr(s, axis=-1):
     """Returns the autocorrelation of signal s at all lags. Adheres to the
     definition r(k) = E{s(n)s*(n-k)} where E{} is the expectation operator.
+
+    XXX - explain parameters? How does axis work?
     """
     N = s.shape[axis]
     S = np.fft.fft(s, n=2*N, axis=axis)
@@ -179,7 +183,9 @@ def xcorr(x,y):
 def norm_corr(x,y,mode = 'valid'):
     """Returns the correlation between to ndarrays, by calling np.correlate in
     'same' mode and normalizing the result by the std of the arrays and by
-    their lengths. This results in a correlation = 1 for an auto-correlation"""
+    their lengths. This results in a correlation = 1 for an auto-correlation.
+
+    XXX - code passes mode, 'same' isn't hardcoded like docstring says!"""
 
     return ( np.correlate(x,y,mode) /
              (np.std(x)*np.std(y)*(x.shape[-1])) )
@@ -287,7 +293,62 @@ def zero_pad(time_series,NFFT):
 # Numpy utilities - Note: these have been sent into numpy itself, so eventually
 # we'll be able to get rid of them here.
 #-----------------------------------------------------------------------------
+
+def block_toeplitz(row, block_size):
+    """Make a block-Toeplitz matrix from a given row.
+
+    XXX - once we finish the multivariate AR code and we're sure of what the
+    interface here needs to be, document this function more clearly...
+
+    Parameters
+    ----------
+
+    row : ndarray
+
+    block_size : int
+
+    Examples
+    --------
+    >>> order = 3
+    >>> nseries = 2
+    >>> rvec_shape = (nseries, order*nseries)
+    >>> n_elems = np.prod(rvec_shape)
+    >>> rvec = np.arange(n_elems, dtype=float).reshape(rvec_shape)
+    >>> rmat = block_toeplitz(rvec, nseries)
+    >>> rvec
+    array([[  0.,   1.,   2.,   3.,   4.,   5.],
+           [  6.,   7.,   8.,   9.,  10.,  11.]])
+    >>> rmat
+    array([[  0.,   1.,   2.,   3.,   4.,   5.],
+           [  6.,   7.,   8.,   9.,  10.,  11.],
+           [  2.,   3.,   0.,   1.,   2.,   3.],
+           [  8.,   9.,   6.,   7.,   8.,   9.],
+           [  4.,   5.,   2.,   3.,   0.,   1.],
+           [ 10.,  11.,   8.,   9.,   6.,   7.]])
+    """
+    # Sanity checks on input
+    if row.shape[1] % block_size:
+        raise ValueError("block_size must divide evenly num_cols of 'row'")
     
+    ncols = row.shape[1]
+    nblocks = ncols/block_size
+    block_rng = range(nblocks)
+    # For simplicity, we brute-force copy the input data into a 'blocked'
+    # version to make the assignment code below easier...
+    blocked_row = np.empty((nblocks, block_size, block_size))
+    for i in block_rng:
+        blocked_row[i] = row[:,i*block_size:(i+1)*block_size]
+        
+    # Make an empty array and fill it with the input blocks
+    out = np.empty((ncols, ncols))
+    for i in block_rng:
+        for j in block_rng:
+            out[i*block_size:(i+1)*block_size,
+                j*block_size:(j+1)*block_size] = \
+                  blocked_row[abs(j-i)]
+
+    return out
+
 
 def fill_diagonal(a,val):
     """Fill the main diagonal of the given array of any dimensionality.

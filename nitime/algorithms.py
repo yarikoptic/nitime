@@ -2020,20 +2020,33 @@ def multi_taper_csd(s, BW=None, Fs=2*np.pi, sides='onesided'):
 
     return freqs, csd_mat 
 
+
 def my_freqz(b, a=1., Nfreqs=1024, sides='onesided'):
+    """XXX - What is the purpose of this function?
+
+    This needs a cleanup: there is a computation of a Fourier transform by
+    direct multiplication instead of using the FFT in numpy, as well as
+    explicit typechecks that can probably be avoided, see below.
+    """
     if sides=='onesided':
         fgrid = np.linspace(0,np.pi,Nfreqs/2+1)
     else:
         fgrid = np.linspace(0,2*np.pi,Nfreqs,endpoint=False)
+
+    # XXX These typechecks should be avoided
     float_type = type(1.)
     int_type = type(1)
     Nfreqs = len(fgrid)
     if isinstance(b, float_type) or isinstance(b, int_type) or len(b) == 1:
         bw = np.ones(Nfreqs, 'D')*b
+        bw = np.empty(Nfreqs)
+        bw.fill(b)
     else:
+        # XXX This seems to be just a discrete Fourier transform, use np.fft?
         L = len(b)
         DTFT = np.exp(-1j*fgrid[:,np.newaxis]*np.arange(0,L))
         bw = np.dot(DTFT, b)
+    # XXX same code as above for a? Reuse one function?
     if isinstance(a, float_type) or isinstance(a, int_type) or len(a) == 1:
         aw = np.ones(Nfreqs, 'D')*a
     else:
@@ -2054,6 +2067,9 @@ def yule_AR_est(s, order, Nfreqs, sxx=None, sides='onesided', system=False):
     s[n] = a1*s[n-1] + a2*s[n-2] + ... aP*s[n-P] + v[n]
 
     where v[n] is a zero-mean white noise process with variance=sigma_v
+
+    XXX - computation of the AR-estimated PSD should be moved to a separate
+    function, and removed from both this and the Levinson-Durbin fit below.
 
     Parameters
     ----------
