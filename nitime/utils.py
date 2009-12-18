@@ -983,11 +983,11 @@ def noise_covariance_matrix(x,y):
     
     >>> x = np.matrix([[1,2,3],[1,2,3],[1,2,3]])
     >>> y = np.matrix([[1,2,3],[1,1,1],[3,3,3]])
-    >>> a = ut.noise_covariance_matrix(x,y)
+    >>> a = noise_covariance_matrix(x,y)
     >>> a
-    array([[ 0.,  0.,  0.],
-           [ 0.,  1.,  1.],
-           [ 0.,  1.,  1.]])
+    matrix([[ 0.,  0.,  0.],
+            [ 0.,  1.,  1.],
+            [ 0.,  1.,  1.]])
 
     """
     e = x-y
