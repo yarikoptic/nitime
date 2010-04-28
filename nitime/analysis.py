@@ -9,11 +9,16 @@ quantities related to this particular family. In general, the objects
 initialize on a time series object and analytical results are then derived from
 the combination of that time-series and the algorithms  """
 
-#Imports:
+#stdlib
+import os
+
+#Third party:
 import numpy as np
 import scipy
 import scipy.signal as signal
 import scipy.stats as stats
+
+#Ours:
 from nitime import descriptors as desc
 from nitime import utils as tsu
 from nitime import algorithms as tsa
@@ -23,6 +28,16 @@ from nitime import timeseries as ts
 # imported at module level? 
 from inspect import getargspec
 
+os.environ['C_INCLUDE_PATH']=np.get_include()
+
+try:
+    import pyximport; pyximport.install()
+    from coherencyx import cache_fft,cache_to_psd,cache_to_coherency,cache_to_phase
+    #print 'using cython?'
+    
+except ImportError:
+    from algorithms import cache_fft,cache_to_psd,cache_to_coherency,cache_to_phase
+    #print 'definitely not using cython!'
     
 class BaseAnalyzer(desc.ResetMixin):
     """Analyzer that implements the default data flow.
