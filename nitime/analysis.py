@@ -33,11 +33,11 @@ os.environ['C_INCLUDE_PATH']=np.get_include()
 try:
     import pyximport; pyximport.install()
     from coherencyx import cache_fft,cache_to_psd,cache_to_coherency,cache_to_phase
-    #print 'using cython?'
+    print 'using cython?'
     
 except ImportError:
     from algorithms import cache_fft,cache_to_psd,cache_to_coherency,cache_to_phase
-    #print 'definitely not using cython!'
+    print 'definitely not using cython!'
     
 class BaseAnalyzer(desc.ResetMixin):
     """Analyzer that implements the default data flow.
