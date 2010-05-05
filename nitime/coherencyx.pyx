@@ -1,7 +1,10 @@
+#imports: 
 
+import numpy as np
+cimport numpy as np
+cimport cython
 
-
-
+""" This will be rewritten in cython, in order to make it work faster/better """
 #-----------------------------------------------------------------------------
 #Coherency calculated using cached spectra
 #-----------------------------------------------------------------------------
