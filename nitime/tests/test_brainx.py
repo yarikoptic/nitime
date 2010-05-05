@@ -1,5 +1,7 @@
 import nose.tools as nt
 import numpy.testing as npt
+import decotest
+import nitime.brainx as brainx
 
 def test_random_modular_graph_between_fraction():
     """Test for graphs with non-zero between_fraction"""
@@ -13,7 +15,7 @@ def test_random_modular_graph_between_fraction():
         for nmod in nmods:
             for av_degree in av_degrees:
                 for btwn_fraction in btwn_fractions:
-                    g = random_modular_graph(nnod, nmod, av_degree,
+                    g = brainx.random_modular_graph(nnod, nmod, av_degree,
                                              btwn_fraction)
 
                     # First, check the average degree.
@@ -101,7 +103,7 @@ def test_modularity():
                 yield (npt.assert_almost_equal, mod_meas, mod_true, 2)
 
 
-@parametric
+@decotest.parametric
 def test_apply_module_merge():
     """Test the GraphPartition operation that merges modules so that it returns
     a change in modularity that reflects the difference between the modularity
@@ -117,7 +119,7 @@ def test_apply_module_merge():
             nnod = nnod_mod*nmod
             for av_degree in av_degrees:
                 
-                g = random_modular_graph(nnod, nmod, av_degree)
+                g = brainx.random_modular_graph(nnod, nmod, av_degree)
 
                 #Make a "correct" partition for the graph
                 part = perfect_partition(nmod,nnod/nmod)
@@ -178,7 +180,7 @@ def test_apply_module_merge():
                                            sorted(graph_part2.index.keys()))
 
 
-@parametric 
+@decotest.parametric 
 def test_apply_module_split():
     """Test the GraphPartition operation that splits modules so that it returns
     a change in modularity that reflects the difference between the modularity
@@ -259,7 +261,7 @@ def test_apply_module_split():
                
 
                     
-@parametric
+@decotest.parametric
 def test_apply_node_move():
     """Test the GraphPartition operation that moves a single node so that it
     returns a change in modularity that reflects the difference between the
@@ -338,7 +340,7 @@ def test_apply_node_move():
 
 
 
-@parametric
+@decotest.parametric
 def test_random_mod():
     """ Test the GraphPartition operation that selects random modules to merge
     and split
@@ -379,7 +381,7 @@ def test_random_nod():
     between modules """
 
 
-@parametric
+@decotest.parametric
 def test_decide_if_keeping():
     """ Test the function which decides whether or not to keep the new
     partition"""
@@ -404,7 +406,7 @@ def test_decide_if_keeping():
                 yield npt.assert_almost_equal(mean_keep,mean_correct, tolerance)
 
 
-@parametric
+@decotest.parametric
 def test_mutual_information():
     """ Test the function which returns the mutual information in two
     partitions"""
@@ -446,7 +448,7 @@ def test_mutual_information():
                 
                 yield npt.assert_almost_equal(mi2,mi2_correct,tolerance)
 
-@parametric
+@decotest.parametric
 def test_rename_keys():
     a = {0:0,1:1,2:2,4:4,5:5}
     rename_keys(a, 3)
@@ -540,7 +542,7 @@ def danon_test():
 
    
     
-#@parametric
+#@decotest.parametric
 def SA():
     """ Test the simulated annealing script"""
 

@@ -1360,7 +1360,7 @@ def random_modular_graph(nnod, nmod, av_degree, between_fraction=0.0):
     assert 0 <= p_out <=1, "Invalid p_out=%s, not in [0,1]" % p_out
 
     # Create initial matrix with uniform random numbers in the 0-1 interval.
-    mat = util.symm_rand_arr(nnod)
+    mat = symm_rand_arr(nnod)
 
     # Create the masking matrix
     blocks = [np.ones((nnod_mod, nnod_mod))] * nmod
