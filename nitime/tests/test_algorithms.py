@@ -134,7 +134,7 @@ def test_coherency_cached():
 
 
 # XXX FIXME: http://github.com/nipy/nitime/issues/issue/1
-@npt.dec.skipif(True) 
+#@npt.dec.skipif(True) 
 def test_coherence_linear_dependence():
     """
     Tests that the coherence between two linearly dependent time-series
@@ -152,27 +152,49 @@ def test_coherence_linear_dependence():
     C(\nu) = \frac{1}{1+\frac{fft_{noise}(\nu)}{fft_{x}(\nu) \cdot \alpha^2}}
     
     """
-    t = np.linspace(0,16*np.pi,2**14)
-    x = np.sin(t) + np.sin(2*t) + np.sin(3*t) + 0.1 *np.random.rand(t.shape[-1])
+    np.random.seed(3)                   # just to reproduce
+    t = np.linspace(0,16*np.pi,2**15)
+    x = np.sin(0.1 * t) + np.sin(100*t) + np.sin(800*t) + 0.1 *np.random.rand(t.shape[-1])
+    #x = np.sin(t) + np.sin(4*t) + np.sin(10*t) + 0.1 *np.random.rand(t.shape[-1])
     N = x.shape[-1]
 
     alpha = 10
-    m = 3
-    noise = 0.1 * np.random.randn(t.shape[-1])
+    m = len(t)/10
+    noise = 1 * np.random.randn(t.shape[-1])
     y = alpha*(np.roll(x,m)) + noise
 
-    f_noise = np.fft.fft(noise)[0:N/2]
-    f_x = np.fft.fft(x)[0:N/2]
-
-    c_t = ( 1/( 1 + ( f_noise/( f_x*(alpha**2)) ) ) )
-
     method = {"this_method":'mlab',
-              "NFFT":2048,
+              "NFFT":256,
               "Fs":2*np.pi}
+    # Following (fft + .resample) is not quite appropriate
+    # specifically because of resample which would filter the
+    # frequency representation instead of simply integrating
+    f_noise = np.fft.fft(noise)[0:N/2] #+ np.fft.fft(noise)[N/2:][::-1]
+    f_x = np.fft.fft(x)[0:N/2] #+ np.fft.fft(x)[N/2:][::-1]
+    c_t = np.abs( 1/( 1 + (f_noise)/( f_x *(alpha**2)) ) )
 
-    f,c = tsa.coherence(np.vstack([x,y]),csd_method=method)
-    c_t = np.abs(signaltools.resample(c_t,c.shape[-1]))
+    f_noise = tsa.get_spectra(noise[None], method)[1]
+    f_x = tsa.get_spectra(x[None], method)[1]
+    c_t = np.abs( 1/( 1 + f_noise/(f_x*(alpha**2) ) ) )
 
+
+    #from pudb import set_trace; set_trace()
+
+    f,c = tsa.coherence(np.vstack([x,y]), csd_method=method)
+    #c_t = np.abs(signaltools.resample(c_t, c.shape[-1]))
+    #c_t2 = np.abs( 1/( 1 + ( signaltools.resample(f_noise, c.shape[-1])
+    #                       / signaltools.resample(f_x*(alpha**2), c.shape[-1]) ) ) )
+    print c_t[:10]
+    print c_t[:10]-c[0,1][:10]
+    #plt.plot(t, x)
+    #plt.plot(t, y)
+    plt.figure()
+    ff = np.linspace(0, np.max(freqs), len(c_t))
+    plt.plot(ff, c[1,0], label='c')
+    plt.plot(ff, c_t, '--', label='c_t')
+    #plt.plot(ff, c_t2, label='c_t2')
+    plt.legend()
+    plt.show()
     npt.assert_array_almost_equal(c[0,1],c_t,2)
     
 @npt.dec.skipif(True)
