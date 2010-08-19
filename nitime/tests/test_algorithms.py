@@ -153,7 +153,8 @@ def test_coherence_linear_dependence():
     
     """
     np.random.seed(3)                   # just to reproduce
-    t = np.linspace(0,16*np.pi,2**15)
+    import pylab as plt
+    t = np.linspace(0,16*np.pi, 256)#2**15)
     x = np.sin(0.1 * t) + np.sin(100*t) + np.sin(800*t) + 0.1 *np.random.rand(t.shape[-1])
     #x = np.sin(t) + np.sin(4*t) + np.sin(10*t) + 0.1 *np.random.rand(t.shape[-1])
     N = x.shape[-1]
@@ -164,7 +165,7 @@ def test_coherence_linear_dependence():
     y = alpha*(np.roll(x,m)) + noise
 
     method = {"this_method":'mlab',
-              "NFFT":256,
+              "NFFT":128,
               "Fs":2*np.pi}
     # Following (fft + .resample) is not quite appropriate
     # specifically because of resample which would filter the
@@ -172,10 +173,11 @@ def test_coherence_linear_dependence():
     f_noise = np.fft.fft(noise)[0:N/2] #+ np.fft.fft(noise)[N/2:][::-1]
     f_x = np.fft.fft(x)[0:N/2] #+ np.fft.fft(x)[N/2:][::-1]
     c_t = np.abs( 1/( 1 + (f_noise)/( f_x *(alpha**2)) ) )
+    freqs = np.fft.fftfreq(len(noise), d=t[1])
 
-    f_noise = tsa.get_spectra(noise[None], method)[1]
-    f_x = tsa.get_spectra(x[None], method)[1]
-    c_t = np.abs( 1/( 1 + f_noise/(f_x*(alpha**2) ) ) )
+    ## f_noise = tsa.get_spectra(noise[None], method)[1]
+    ## f_x = tsa.get_spectra(x[None], method)[1]
+    ## c_t = np.abs( 1/( 1 + f_noise/(f_x*(alpha**2) ) ) )
 
 
     #from pudb import set_trace; set_trace()
