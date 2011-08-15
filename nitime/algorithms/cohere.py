@@ -20,6 +20,9 @@ import matplotlib.mlab as mlab
 from spectral import get_spectra, get_spectra_bi
 import nitime.utils as utils
 
+# To suppport older versions of numpy that don't have tril_indices:
+from nitime.index_utils import tril_indices
+
 
 def coherency(time_series, csd_method=None):
     r"""
@@ -50,16 +53,16 @@ def coherency(time_series, csd_method=None):
     Notes
     -----
 
-    This is an implementation of equation (1) of [Sun2005]_:
+    This is an implementation of equation (1) of Sun (2005):
 
     .. math::
 
         R_{xy} (\lambda) = \frac{f_{xy}(\lambda)}
         {\sqrt{f_{xx} (\lambda) \cdot f_{yy}(\lambda)}}
 
-    .. [Sun2005] F.T. Sun and L.M. Miller and M. D'Esposito(2005). Measuring
-        temporal dynamics of functional networks using phase spectrum of fMRI
-        data. Neuroimage, 28: 227-37.
+    F.T. Sun and L.M. Miller and M. D'Esposito (2005). Measuring temporal
+    dynamics of functional networks using phase spectrum of fMRI
+    data. Neuroimage, 28: 227-37.
 
     """
     if csd_method is None:
@@ -77,7 +80,7 @@ def coherency(time_series, csd_method=None):
         for j in xrange(i, time_series.shape[0]):
             c[i][j] = coherency_spec(fxy[i][j], fxy[i][i], fxy[j][j])
 
-    idx = np.tril_indices(time_series.shape[0], -1)
+    idx = tril_indices(time_series.shape[0], -1)
     c[idx[0], idx[1], ...] = c[idx[1], idx[0], ...].conj()  # Make it symmetric
 
     return f, c
@@ -123,7 +126,7 @@ def coherence(time_series, csd_method=None):
        an array of different time series with time as the last dimension
 
     csd_method: dict, optional
-       See :func:`get_spectra` documentation for details
+       See :func:`algorithms.spectral.get_spectra` documentation for details
 
     Returns
     -------
@@ -138,20 +141,16 @@ def coherence(time_series, csd_method=None):
     Notes
     -----
 
-    This is an implementation of equation (2) of [Sun2005]_:
+    This is an implementation of equation (2) of Sun (2005):
 
     .. math::
 
         Coh_{xy}(\lambda) = |{R_{xy}(\lambda)}|^2 =
         \frac{|{f_{xy}(\lambda)}|^2}{f_{xx}(\lambda) \cdot f_{yy}(\lambda)}
 
-    .. [Sun2005] F.T. Sun and L.M. Miller and M. D'Esposito(2005). Measuring
-        temporal dynamics of functional networks using phase spectrum of fMRI
-        data.  Neuroimage, 28: 227-37.
-
-    See also
-    --------
-    :func:`coherence_spec`
+    F.T. Sun and L.M. Miller and M. D'Esposito (2005). Measuring temporal
+    dynamics of functional networks using phase spectrum of fMRI data.
+    Neuroimage, 28: 227-37.
 
     """
     if csd_method is None:
@@ -159,8 +158,8 @@ def coherence(time_series, csd_method=None):
 
     f, fxy = get_spectra(time_series, csd_method)
 
-    #A container for the coherences, with the size and shape of the expected
-    #output:
+    # A container for the coherences, with the size and shape of the expected
+    # output:
     c = np.zeros((time_series.shape[0],
                   time_series.shape[0],
                   f.shape[0]))
@@ -169,7 +168,7 @@ def coherence(time_series, csd_method=None):
         for j in xrange(i, time_series.shape[0]):
             c[i][j] = coherence_spec(fxy[i][j], fxy[i][i], fxy[j][j])
 
-    idx = np.tril_indices(time_series.shape[0], -1)
+    idx = tril_indices(time_series.shape[0], -1)
     c[idx[0], idx[1], ...] = c[idx[1], idx[0], ...].conj()  # Make it symmetric
 
     return f, c
@@ -187,7 +186,7 @@ def coherence_spec(fxy, fxx, fyy):
     fxy : array
          The cross-spectrum of the time series
 
-    fyy,fxx : array
+    fyy, fxx : array
          The spectra of the signals
 
     Returns
@@ -200,9 +199,11 @@ def coherence_spec(fxy, fxx, fyy):
     --------
     :func:`coherence`
     """
-
-    c = (np.abs(fxy)) ** 2 / (fxx * fyy)
-
+    if not np.isrealobj(fxx):
+        fxx = np.real(fxx)
+    if not np.isrealobj(fyy):
+        fyy = np.real(fyy)
+    c = np.abs(fxy) ** 2 / (fxx * fyy)
     return c
 
 
@@ -270,7 +271,7 @@ def coherency_regularized(time_series, epsilon, alpha, csd_method=None):
             c[i][j] = _coherency_reqularized(fxy[i][j], fxy[i][i],
                                              fxy[j][j], epsilon, alpha)
 
-    idx = np.tril_indices(time_series.shape[0], -1)
+    idx = tril_indices(time_series.shape[0], -1)
     c[idx[0], idx[1], ...] = c[idx[1], idx[0], ...].conj()  # Make it symmetric
 
     return f, c
@@ -373,7 +374,7 @@ def coherence_regularized(time_series, epsilon, alpha, csd_method=None):
             c[i][j] = _coherence_reqularized(fxy[i][j], fxy[i][i],
                                              fxy[j][j], epsilon, alpha)
 
-    idx = np.tril_indices(time_series.shape[0], -1)
+    idx = tril_indices(time_series.shape[0], -1)
     c[idx[0], idx[1], ...] = c[idx[1], idx[0], ...].conj()  # Make it symmetric
 
     return f, c
@@ -438,7 +439,7 @@ def coherency_bavg(time_series, lb=0, ub=None, csd_method=None):
     Notes
     -----
 
-    This is an implementation of equation (A4) of [Sun2005]_:
+    This is an implementation of equation (A4) of Sun(2005):
 
     .. math::
 
@@ -446,9 +447,9 @@ def coherency_bavg(time_series, lb=0, ub=None, csd_method=None):
         \frac{\left|{\sum_\lambda{\hat{f_{xy}}}}\right|^2}
         {\sum_\lambda{\hat{f_{xx}}}\cdot sum_\lambda{\hat{f_{yy}}}}
 
-    .. [Sun2005] F.T. Sun and L.M. Miller and M. D'Esposito(2005). Measuring
-        temporal dynamics of functional networks using phase spectrum of fMRI
-        data. Neuroimage, 28: 227-37.
+    F.T. Sun and L.M. Miller and M. D'Esposito (2005). Measuring
+    temporal dynamics of functional networks using phase spectrum of fMRI
+    data. Neuroimage, 28: 227-37.
     """
     if csd_method is None:
         csd_method = {'this_method': 'welch'}  # The default
@@ -469,7 +470,7 @@ def coherency_bavg(time_series, lb=0, ub=None, csd_method=None):
                                       fxy[i][i][lb_idx:ub_idx],
                                       fxy[j][j][lb_idx:ub_idx])
 
-    idx = np.tril_indices(time_series.shape[0], -1)
+    idx = tril_indices(time_series.shape[0], -1)
     c[idx[0], idx[1], ...] = c[idx[1], idx[0], ...].conj()  # Make it symmetric
 
     return c
@@ -568,7 +569,7 @@ def coherence_bavg(time_series, lb=0, ub=None, csd_method=None):
                                       fxy[i][i][lb_idx:ub_idx],
                                       fxy[j][j][lb_idx:ub_idx])
 
-    idx = np.tril_indices(time_series.shape[0], -1)
+    idx = tril_indices(time_series.shape[0], -1)
     c[idx[0], idx[1], ...] = c[idx[1], idx[0], ...].conj()  # Make it symmetric
 
     return c
@@ -594,9 +595,12 @@ def _coherence_bavg(fxy, fxx, fyy):
     float :
         the band-averaged coherence
     """
+    if not np.isrealobj(fxx):
+        fxx = np.real(fxx)
+    if not np.isrealobj(fyy):
+        fyy = np.real(fyy)
 
-    return ((np.abs(fxy.sum()) ** 2) /
-            (fxx.sum() * fyy.sum()))
+    return (np.abs(fxy.sum()) ** 2) / (fxx.sum() * fyy.sum())
 
 
 def coherence_partial(time_series, r, csd_method=None):
@@ -637,16 +641,16 @@ def coherence_partial(time_series, r, csd_method=None):
     Notes
     -----
 
-    This is an implementation of equation (2) of [Sun2004]_:
+    This is an implementation of equation (2) of Sun (2004):
 
     .. math::
 
         Coh_{xy|r} = \frac{|{R_{xy}(\lambda) - R_{xr}(\lambda)
         R_{ry}(\lambda)}|^2}{(1-|{R_{xr}}|^2)(1-|{R_{ry}}|^2)}
 
-    .. [Sun2004] F.T. Sun and L.M. Miller and M. D'Esposito(2004). Measuring
-    interregional functional connectivity using coherence and partial coherence
-    analyses of fMRI data Neuroimage, 21: 647-58.
+    F.T. Sun and L.M. Miller and M. D'Esposito (2004). Measuring interregional
+    functional connectivity using coherence and partial coherence analyses of
+    fMRI data Neuroimage, 21: 647-58.
     """
 
     if csd_method is None:
@@ -666,7 +670,7 @@ def coherence_partial(time_series, r, csd_method=None):
             c[i, j] = coherence_partial_spec(fxy[i][j], fxy[i][i],
                                                   fxy[j][j], frx, fry, frr)
 
-    idx = np.tril_indices(time_series.shape[0], -1)
+    idx = tril_indices(time_series.shape[0], -1)
     c[idx[0], idx[1], ...] = c[idx[1], idx[0], ...].conj()  # Make it symmetric
 
     return f, c
@@ -684,10 +688,10 @@ def coherence_partial_spec(fxy, fxx, fyy, fxr, fry, frr):
     fxy : float array
          The cross-spectrum of the time series
 
-    fyy,fxx : float array
+    fyy, fxx : float array
          The spectra of the signals
 
-    fxr,fry : float array
+    fxr, fry : float array
          The cross-spectra of the signals with the event
 
     Returns
@@ -695,7 +699,6 @@ def coherence_partial_spec(fxy, fxx, fyy, fxr, fry, frr):
     float
         the band-averaged coherency
     """
-    abs = np.abs
     coh = coherency_spec
     Rxr = coh(fxr, fxx, frr)
     Rry = coh(fry, fyy, frr)
@@ -706,7 +709,7 @@ def coherence_partial_spec(fxy, fxx, fyy, fxr, fry, frr):
 
 
 def coherency_phase_spectrum(time_series, csd_method=None):
-    """
+    r"""
     Compute the phase spectrum of the cross-spectrum between two time series.
 
     The parameters of this function are in the time domain.
@@ -735,9 +738,9 @@ def coherency_phase_spectrum(time_series, csd_method=None):
 
         \phi(\lambda) = arg [R_{xy} (\lambda)] = arg [f_{xy} (\lambda)]
 
-    .. [Sun2005] F.T. Sun and L.M. Miller and M. D'Esposito(2005). Measuring
-        temporal dynamics of functional networks using phase spectrum of fMRI
-        data.  Neuroimage, 28: 227-37.
+    F.T. Sun and L.M. Miller and M. D'Esposito (2005). Measuring temporal
+    dynamics of functional networks using phase spectrum of fMRI data.
+    Neuroimage, 28: 227-37.
     """
     if csd_method is None:
         csd_method = {'this_method': 'welch'}  # The default
@@ -857,12 +860,10 @@ def correlation_spectrum(x1, x2, Fs=2 * np.pi, norm=False):
     Notes
     -----
 
-    This method is described in full in [Cordes2000]_
-
-    .. [Cordes2000] D Cordes, V M Haughton, K Arfanakis, G J Wendt, P A Turski,
-    C H Moritz, M A Quigley, M E Meyerand (2000). Mapping functionally related
-    regions of brain with functional connectivity MR imaging. AJNR American
-    journal of neuroradiology 21:1636-44
+    This method is described in full in: D Cordes, V M Haughton, K Arfanakis, G
+    J Wendt, P A Turski, C H Moritz, M A Quigley, M E Meyerand (2000). Mapping
+    functionally related regions of brain with functional connectivity MR
+    imaging. AJNR American journal of neuroradiology 21:1636-44
 
     """
 
@@ -968,7 +969,6 @@ def cache_fft(time_series, ij, lb=0, ub=None,
     for i, j in ij:
         all_channels.add(i)
         all_channels.add(j)
-    n_channels = len(all_channels)
 
     # for real time_series, ignore the negative frequencies
     if np.iscomplexobj(time_series):
@@ -1013,7 +1013,6 @@ def cache_fft(time_series, ij, lb=0, ub=None,
     n_slices = len(i_times)
     FFT_slices = {}
     FFT_conj_slices = {}
-    Pxx = {}
 
     for i_channel in all_channels:
         #dbg:
@@ -1058,19 +1057,18 @@ def cache_to_psd(cache, ij):
         keys are the intersection of i,j values in the parameter ij
 
     """
-
-    #This is the way it is saved by cache_spectra:
+    # This is the way it is saved by cache_spectra:
     FFT_slices = cache['FFT_slices']
     FFT_conj_slices = cache['FFT_conj_slices']
     norm_val = cache['norm_val']
-    Fs = cache['Fs']
-    #This is where the output goes to:
+    # Fs = cache['Fs']
+
+    # This is where the output goes to:
     Pxx = {}
     all_channels = set()
     for i, j in ij:
         all_channels.add(i)
         all_channels.add(j)
-    n_channels = len(all_channels)
 
     for i in all_channels:
         #dbg:
@@ -1125,7 +1123,6 @@ def cache_to_phase(cache, ij):
     for i, j in ij:
         all_channels.add(i)
         all_channels.add(j)
-    n_channels = len(all_channels)
 
     for i in all_channels:
         Phase[i] = np.angle(FFT_slices[i])
@@ -1166,10 +1163,10 @@ def cache_to_relative_phase(cache, ij):
     on individual windows.
 
     """
-    #This is the way it is saved by cache_spectra:
+    # This is the way it is saved by cache_spectra:
     FFT_slices = cache['FFT_slices']
     FFT_conj_slices = cache['FFT_conj_slices']
-    norm_val = cache['norm_val']
+    # norm_val = cache['norm_val']
 
     freqs = cache['FFT_slices'][ij[0][0]].shape[-1]
 
