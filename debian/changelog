@@ -1,3 +1,9 @@
+nitime (0.3-1) unstable; urgency=low
+
+  * Fresh upstream release
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 15 Aug 2011 16:29:48 -0400
+
 nitime (0.2.99-1) unstable; urgency=low
 
   * Pre-0.3 snapshot release
