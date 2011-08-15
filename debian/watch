@@ -1,4 +1,4 @@
 version=3
 
 opts="filenamemangle=s/.*\/(.*)/nitime-$1\.tar\.gz/" \
-  http://github.com/nipy/nitime/downloads .*tarball/([\d\.a-z]+)
+  http://github.com/nipy/nitime/downloads .*tarball/rel/([\d\.a-z]+)

@@ -1,6 +1,8 @@
 nitime (0.3-1) unstable; urgency=low
 
   * Fresh upstream release
+  * Adjusted debian/watch and added a rudimentary get-orig-source which 
+    uses uscan to fetch tarballs from github
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 15 Aug 2011 16:29:48 -0400
 
