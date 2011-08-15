@@ -9,10 +9,16 @@ It contains a core of numerical algorithms for time-series analysis both in the
 time and spectral domains, a set of container objects to represent time-series,
 and auxiliary objects that expose a high level interface to the numerical
 machinery and make common analysis tasks easy to express with compact and
-semantically clear code.
+semantically clear code. 
 
 .. toctree::
-   :hidden:
-
+   :maxdepth: 1
+   
    documentation
-   news
+   whatsnew/index
+   examples/index
+
+Questions? Comments? Please `email`_ us.
+
+.. _email: http://projects.scipy.org/mailman/listinfo/nipy-devel
+

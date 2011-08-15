@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import numpy.testing as npt
 import matplotlib.mlab as mlab
@@ -5,6 +7,11 @@ import matplotlib.mlab as mlab
 import nitime.timeseries as ts
 import nitime.analysis as nta
 
+import platform
+if float(platform.python_version()[:3])<2.5:
+    old_python = True
+else:
+    old_python = False
 
 def test_CoherenceAnalyzer():
     methods = (None,
@@ -28,7 +35,7 @@ def test_CoherenceAnalyzer():
                 # of frequencies):
                 npt.assert_equal(C.coherence.shape,(n_series, n_series,
                                                     C.frequencies.shape[0]))
-                
+
             elif (method['this_method']=='welch' or
                   method['this_method']=='periodogram_csd'):
                 npt.assert_equal(C.coherence.shape, (n_series, n_series,
@@ -107,6 +114,28 @@ def test_MTCoherenceAnalyzer():
                                                        NFFT))
 
 
+@npt.dec.skipif(old_python)
+def test_warn_short_tseries():
+    """
+
+    A warning is provided when the time-series is shorter than the NFFT + n_overlap.
+
+    The implementation of this test is based on this:
+    http://docs.python.org/library/warnings.html#testing-warnings
+
+    """
+
+    with warnings.catch_warnings(record=True) as w:
+        # Cause all warnings to always be triggered.
+        warnings.simplefilter("always")
+        # Trigger a warning.
+        # The following should throw a warning, because 70 is smaller than the
+        # default NFFT=64 + n_overlap=32:
+        nta.CoherenceAnalyzer(ts.TimeSeries(np.random.rand(2,70),sampling_rate=1))
+        # Verify some things
+        npt.assert_equal(len(w), 1)
+
+
 def test_SeedCoherenceAnalyzer():
     """ Test the SeedCoherenceAnalyzer """
     methods = (None,
@@ -137,5 +166,24 @@ def test_SeedCoherenceAnalyzer():
             npt.assert_almost_equal(C1.delay[0, 1], C2.delay[1])
 
         else:
-            npt.assert_raises(ValueError,nta.SeedCoherenceAnalyzer, T_seed1,
+            npt.assert_raises(ValueError, nta.SeedCoherenceAnalyzer, T_seed1,
                               T_target, this_method)
+
+def test_SeedCoherenceAnalyzer_same_Fs():
+    """
+
+    Providing two time-series with different sampling rates throws an error
+
+    """
+
+    Fs1 = np.pi
+    Fs2 = 2 * np.pi
+    t = np.arange(256)
+
+    T1 = ts.TimeSeries(np.random.rand(t.shape[-1]),
+                       sampling_rate=Fs1)
+
+    T2 = ts.TimeSeries(np.random.rand(t.shape[-1]),
+                       sampling_rate=Fs2)
+
+    npt.assert_raises(ValueError, nta.SeedCoherenceAnalyzer, T1, T2)

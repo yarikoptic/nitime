@@ -4,7 +4,7 @@ Depends on matplotlib. Some functions depend also on networkx
 
 """
 
-# If you are running nosetests right now, you might want to use 'agg' as a backend: 
+# If you are running nosetests right now, you might want to use 'agg' as a backend:
 import sys
 if "nose" in sys.modules:
     import matplotlib
@@ -23,20 +23,20 @@ import nitime.utils as tsu
 from nitime.utils import threshold_arr, minmax_norm, rescale_arr
 import nitime.analysis as nta
 
-# triu_indices was only added to numpy in v1.4, so we carry it here in the
-# meantime to allow numpy 1.3-compatibility.
-try:
-    from numpy import triu_indices
-except ImportError:
-    from nitime.utils import triu_indices
+from nitime.utils import triu_indices
 
 #Some visualization functions require networkx. Import that if possible:
 try:
     import networkx as nx
     #If not, throw an error and get on with business:
 except ImportError:
-    print("Networkx is not available. Some visualization tools might not work"
-            "\n To download networkx: http://networkx.lanl.gov/")
+    e_s = "Networkx is not available. Some visualization tools might not work"
+    e_s += "\n To download networkx: http://networkx.lanl.gov/"
+    print e_s
+    class NetworkxNotInstalled(object):
+        def __getattribute__(self,x):
+            raise ImportError(e_s)
+    nx = NetworkxNotInstalled()
 
 
 def plot_tseries(time_series, fig=None, axis=0,
@@ -201,7 +201,7 @@ def subcolormap(xmin, xmax, cmap):
     return colors.LinearSegmentedColormap('local', cd, N=256)
 
 
-def drawmatrix_channels(in_m, channel_names=None, fig=None, x_tick_rot=90,
+def drawmatrix_channels(in_m, channel_names=None, fig=None, x_tick_rot=0,
                         size=None, cmap=plt.cm.RdBu_r, colorbar=True,
                         color_anchor=None, title=None):
     """Creates a lower-triangle of the matrix of an nxn set of values. This is
@@ -1386,7 +1386,7 @@ def winspect(win, f, name=None):
 
 def plot_spectral_estimate(f, sdf, sdf_ests, limits=None, elabels=()):
     """
-    Plot an estimate of a spectral transform agains the ground truth.
+    Plot an estimate of a spectral transform against the ground truth.
 
     Utility file used in building the documentation
     """
