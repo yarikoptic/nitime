@@ -11,6 +11,8 @@ from nitime import descriptors as desc
 
 from .base import BaseAnalyzer
 
+# To suppport older versions of numpy that don't have tril_indices:
+from nitime.index_utils import tril_indices_from
 
 def fit_model(x1, x2, order=None, max_order=10,
               criterion=utils.bayesian_information_criterion):
@@ -100,9 +102,10 @@ class GrangerAnalyzer(BaseAnalyzer):
         if ij is None:
             # The following gets the full list of combinations of
             # non-same i's and j's:
-            x,y = np.meshgrid(np.arange(self._n_process), np.arange(self._n_process))
-            self.ij = zip(x[np.tril_indices_from(x,-1)],
-                          y[np.tril_indices_from(y,-1)])
+            x, y = np.meshgrid(np.arange(self._n_process),
+                               np.arange(self._n_process))
+            self.ij = zip(x[tril_indices_from(x, -1)],
+                          y[tril_indices_from(y, -1)])
         else:
             self.ij = ij
 
