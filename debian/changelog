@@ -1,4 +1,11 @@
-nitime (0.3-1) unstable; urgency=low
+nitime (0.3.1-1) unstable; urgency=low
+
+  * Fresh bugfix release: addresses compatibility concerns allowing easy
+    backporting
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 17 Aug 2011 17:35:17 -0400
+
+nitime (0.3-1) UNRELEASED; urgency=low
 
   * Fresh upstream release
   * Adjusted debian/watch and added a rudimentary get-orig-source which 
