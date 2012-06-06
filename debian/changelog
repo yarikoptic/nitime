@@ -1,3 +1,9 @@
+nitime (0.3.1+git62-g207d508-1) UNRELEASED; urgency=low
+
+  * New upstream snapshot from releases at rel/0.3.1-62-g207d508
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 06 Jun 2012 16:04:24 -0400
+
 nitime (0.3.1-1) unstable; urgency=low
 
   * Fresh bugfix release: addresses compatibility concerns allowing easy
