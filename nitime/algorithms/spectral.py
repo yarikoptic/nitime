@@ -12,13 +12,15 @@ XXX
 """
 
 import numpy as np
-from matplotlib import mlab
-from scipy import linalg
-from scipy import signal as sig
-from scipy import interpolate
+from nitime.lazy import matplotlib_mlab as mlab
+from nitime.lazy import scipy_linalg as linalg
+from nitime.lazy import scipy_signal as sig
+from nitime.lazy import scipy_interpolate as interpolate
+from nitime.lazy import scipy_fftpack as fftpack
+
 import nitime.utils as utils
 
-# To suppport older versions of numpy that don't have tril_indices:
+# To support older versions of numpy that don't have tril_indices:
 from nitime.index_utils import tril_indices, triu_indices
 
 
@@ -97,7 +99,7 @@ def get_spectra(time_series, method=None):
     """
     if method is None:
         method = {'this_method': 'welch'}  # The default
-    # If no choice of method was explicitely set, but other parameters were
+    # If no choice of method was explicitly set, but other parameters were
     # passed, assume that the method is mlab:
     this_method = method.get('this_method', 'welch')
 
@@ -137,7 +139,7 @@ def get_spectra(time_series, method=None):
                                        scale_by_freq=True)
 
                     fxy[i][j] = temp.squeeze()  # the output of mlab.csd has a
-                                                # wierd shape
+                                                # weird shape
     elif this_method in ('multi_taper_csd', 'periodogram_csd'):
         # these methods should work with similar signatures
         mdict = method.copy()
@@ -239,7 +241,7 @@ def periodogram(s, Fs=2 * np.pi, Sk=None, N=None,
         N = Sk.shape[-1]
     else:
         N = s.shape[-1] if not N else N
-        Sk = np.fft.fft(s, n=N)
+        Sk = fftpack.fft(s, n=N)
     pshape = list(Sk.shape)
     norm = float(s.shape[-1])
 
@@ -307,7 +309,7 @@ def periodogram_csd(s, Fs=2 * np.pi, Sk=None, NFFT=None, sides='default',
     -------
 
     freqs, csd_est : ndarrays
-        The estimatated CSD and the frequency points vector.
+        The estimated CSD and the frequency points vector.
         The CSD{i,j}(f) are returned in a square "matrix" of vectors
         holding Sij(f). For an input array that is reshaped to (M,N),
         the output is (M,M,N)
@@ -332,7 +334,7 @@ def periodogram_csd(s, Fs=2 * np.pi, Sk=None, NFFT=None, sides='default',
             N = NFFT
         else:
             N = s.shape[-1]
-        Sk_loc = np.fft.fft(s, n=N)
+        Sk_loc = fftpack.fft(s, n=N)
     # reset s.shape
     s.shape = s_shape
 
@@ -381,8 +383,8 @@ def dpss_windows(N, NW, Kmax, interp_from=None, interp_kind='linear'):
     Returns the Discrete Prolate Spheroidal Sequences of orders [0,Kmax-1]
     for a given frequency-spacing multiple NW and sequence length N.
 
-    Paramters
-    ---------
+    Parameters
+    ----------
     N : int
         sequence length
     NW : float, unitless
@@ -391,7 +393,7 @@ def dpss_windows(N, NW, Kmax, interp_from=None, interp_kind='linear'):
     Kmax : int
         number of DPSS windows to return is Kmax (orders 0 through Kmax-1)
     interp_from: int (optional)
-        The dpss will can calculated using interpolation from a set of dpss
+        The dpss can be calculated using interpolation from a set of dpss
         with the same NW and Kmax, but shorter N. This is the length of this
         shorter set of dpss windows.
     interp_kind: str (optional)
@@ -631,7 +633,7 @@ def multi_taper_psd(s, Fs=2 * np.pi, BW=None,  adaptive=False,
     -------
     (freqs, psd_est, var_or_nu) : ndarrays
         The first two arrays are the frequency points vector and the
-        estimatated PSD. The last returned array differs depending on whether
+        estimated PSD. The last returned array differs depending on whether
         the jackknife was used. It is either
 
         * The jackknife estimated variance of the log-psd, OR
@@ -678,7 +680,7 @@ def multi_taper_psd(s, Fs=2 * np.pi, BW=None,  adaptive=False,
     # windows are orthonormal, they effectively scale the signal by 1/N
 
     # XXX: scipy fft is faster
-    tapered_spectra = np.fft.fft(tapered)
+    tapered_spectra = fftpack.fft(tapered)
 
     last_freq = N / 2 + 1 if sides == 'onesided' else N
 
@@ -810,7 +812,7 @@ def multi_taper_csd(s, Fs=2 * np.pi, BW=None, low_bias=True,
     tapered = s[sig_sl] * dpss
 
     # compute the y_{i,k}(f)
-    tapered_spectra = np.fft.fft(tapered)
+    tapered_spectra = fftpack.fft(tapered)
 
     # compute the cross-spectral density functions
     last_freq = N / 2 + 1 if sides == 'onesided' else N
