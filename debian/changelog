@@ -1,6 +1,6 @@
-nitime (0.3.1+git10-g59d3d98-1) UNRELEASED; urgency=low
+nitime (0.3.1+git58-g05b8e09-1) UNRELEASED; urgency=low
 
-  * New upstream snapshot from master at rel/0.3.1-10-g59d3d98
+  * New upstream snapshot from origin/master at rel/0.3.1-58-g05b8e09
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 06 Jun 2012 14:30:31 -0400
 
