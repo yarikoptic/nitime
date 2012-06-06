@@ -1,3 +1,9 @@
+nitime (0.3.1+git10-g59d3d98-1) UNRELEASED; urgency=low
+
+  * New upstream snapshot from master at rel/0.3.1-10-g59d3d98
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 06 Jun 2012 14:30:31 -0400
+
 nitime (0.3.1-1) unstable; urgency=low
 
   * Fresh bugfix release: addresses compatibility concerns allowing easy
