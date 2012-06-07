@@ -1,6 +1,7 @@
-nitime (0.3.1+git62-g207d508-1) UNRELEASED; urgency=low
+nitime (0.3.1+git63-g4be2fce-1) UNRELEASED; urgency=low
 
   * New upstream snapshot from releases at rel/0.3.1-62-g207d508
+    + fix commit for lazyimports pickling
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 06 Jun 2012 16:04:24 -0400
 
