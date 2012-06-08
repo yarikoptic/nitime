@@ -8,6 +8,9 @@ nitime (0.3.1+git63-g4be2fce-1) UNRELEASED; urgency=low
     - boosted policy compliance to 3.9.3 (no further changes)
   * debian/copyright:
     - updated years and fixed for DEP5 compliance
+  * debian/rules
+    - disable test_lazy_reload test (known to fail whenever ran by nosetest)
+    - export HOME=$(CURDIR)/build just to avoid possible FTBFs
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 06 Jun 2012 16:04:24 -0400
 

@@ -10,6 +10,7 @@ PYTHON=$(shell pyversions -d)
 
 # override matplotlib config directory
 export MPLCONFIGDIR=$(CURDIR)/build
+export HOME=$(CURDIR)/build
 
 %:
 	dh $@
@@ -42,7 +43,7 @@ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 		echo "I: Running NiTime unittests using $$PYTHON"; \
 		PYTHONPATH=$$(/bin/ls -d $(INSTALL_PATH)/usr/lib/$$PYTHON/*-packages) \
 		MPLCONFIGDIR=/tmp/ \
-			$$PYTHON /usr/bin/nosetests nitime; \
+			$$PYTHON /usr/bin/nosetests --exclude=test_lazy_reload nitime; \
 	done
 endif
 
