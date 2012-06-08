@@ -19,7 +19,7 @@ Vcs-Browser: http://github.com/yarikoptic/nitime
 
 Package: python-nitime
 Architecture: all
-Depends: ${python:depends}, ${shlibs:Depends}, ${misc:Depends},
+Depends: ${python:Depends}, ${shlibs:Depends}, ${misc:Depends},
          python-numpy, python-scipy
 Recommends: python-matplotlib,
             python-nose,
