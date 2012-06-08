@@ -4,14 +4,15 @@ Priority: extra
 Maintainer: NeuroDebian Team <team@neuro.debian.net>
 Uploaders: Yaroslav Halchenko <debian@onerussian.com>, Michael Hanke <michael.hanke@gmail.com>
 Build-Depends: debhelper (>= 7.0.50~), python-all, python-support,
-			   python-numpy,
-			   python-scipy,
-			   python-matplotlib, python-tk,
-			   python-sphinx,
-			   python-nose,
-			   python-networkx,
-			   python-nibabel
-Standards-Version: 3.9.2
+               python-numpy,
+               python-scipy,
+               python-matplotlib, python-tk,
+               python-sphinx,
+               python-nose,
+               python-networkx,
+               python-nibabel,
+Standards-Version: 3.9.3
+XS-Python-Version: >= 2.6
 Homepage: http://nipy.org/nitime
 Vcs-Git: git://github.com/yarikoptic/nitime.git
 Vcs-Browser: http://github.com/yarikoptic/nitime
@@ -19,11 +20,11 @@ Vcs-Browser: http://github.com/yarikoptic/nitime
 Package: python-nitime
 Architecture: all
 Depends: ${python:depends}, ${shlibs:Depends}, ${misc:Depends},
-		 python-numpy, python-scipy
+         python-numpy, python-scipy
 Recommends: python-matplotlib,
-			python-nose,
-			python-nibabel,
-			python-networkx
+            python-nose,
+            python-nibabel,
+            python-networkx
 Description: timeseries analysis for neuroscience data (nitime)
  Nitime is a Python module for time-series analysis of data from
  neuroscience experiments.  It contains a core of numerical algorithms
