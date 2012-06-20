@@ -14,6 +14,8 @@ nitime (0.4-1) unstable; urgency=low
   * debian/rules
     - disable test_lazy_reload test (known to fail whenever ran by nosetest)
     - export HOME=$(CURDIR)/build just to avoid possible FTBFs
+  * debian/watch
+    - adjusted to fetch from tags
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 06 Jun 2012 16:04:24 -0400
 
