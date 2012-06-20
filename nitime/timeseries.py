@@ -269,7 +269,7 @@ class TimeArray(np.ndarray, TimeInterface):
     def __eq__(self,val):
         val = self._convert_if_needed(val)
         return np.ndarray.__eq__(self,val)
-
+    
     def min(self, *args,**kwargs):
         ret = TimeArray(np.ndarray.min(self, *args,**kwargs),
             time_unit=base_unit)
@@ -299,6 +299,27 @@ class TimeArray(np.ndarray, TimeInterface):
             time_unit=base_unit)
         ret.convert_unit(self.time_unit)
         return ret
+    
+    def prod(self, *args, **kwargs):
+        e_s = "Product computation changes TimeArray units"
+        raise NotImplementedError(e_s)
+        
+    
+    def var(self, *args, **kwargs):
+        e_s = "Variance computation changes TimeArray units"
+        raise NotImplementedError(e_s)
+
+        
+    def std(self, *args, **kwargs):
+        """Returns the standard deviation of this TimeArray (with time units)
+
+        for detailed information, see numpy.std()
+        """
+        ret = TimeArray(np.ndarray.std(self, *args,**kwargs),
+            time_unit=base_unit)
+        ret.convert_unit(self.time_unit)
+        return ret
+
 
     def index_at(self, t, tol=None, mode='closest'):
         """ Returns the integer indices that corresponds to the time t
