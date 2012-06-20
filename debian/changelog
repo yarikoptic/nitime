@@ -1,3 +1,10 @@
+nitime (0.4-2) unstable; urgency=low
+
+  * Added graphviz to Build-Depends (Closes: #608908)
+    Sorry that I have missed in -1 upload
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 20 Jun 2012 09:01:35 -0400
+
 nitime (0.4-1) unstable; urgency=low
 
   * New upstream release
