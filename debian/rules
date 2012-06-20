@@ -52,5 +52,10 @@ endif
 override_dh_compress:
 	dh_compress -X.py -X.html -X.css -X.jpg -X.txt -X.js -X.json -X.rtc -X.par -X.bin
 
+override_dh_clean:
+	dh_clean
+	@echo "I: Removing other generated material"
+	rm -rf build doc/_build doc/examples/fig doc/api/generated/ doc/examples/*rst
+
 get-orig-source:
 	-uscan --upstream-version 0 --rename

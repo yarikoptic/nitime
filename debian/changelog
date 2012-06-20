@@ -2,6 +2,9 @@ nitime (0.4-2) unstable; urgency=low
 
   * Added graphviz to Build-Depends (Closes: #608908)
     Sorry that I have missed in -1 upload
+  * Adding additional cleaning to assure pristine state for source
+    package rebuilding (Closes: #643226, original report was about version.py
+    being modified -- seems to be not the case any longer)
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 20 Jun 2012 09:01:35 -0400
 
