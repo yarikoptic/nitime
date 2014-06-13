@@ -21,33 +21,31 @@ class EventRelatedAnalyzer(desc.ResetMixin):
         """
         Parameters
         ----------
-        time_series: a time-series object
+        time_series : a time-series object
            A time-series with data on which the event-related analysis proceeds
 
-        events_time_series: a TimeSeries object or an Events object
+        events_time_series : a TimeSeries object or an Events object
+            The events which occured in tandem with the time-series in the
+            EventRelatedAnalyzer. This object's data has to have the same
+            dimensions as the data in the EventRelatedAnalyzer object. In each
+            sample in the time-series, there is an integer, which denotes the
+            kind of event which occured at that time. In time-bins in which no
+            event occured, a 0 should be entered. The data in this time series
+            object needs to have the same dimensionality as the data in the
+            data time-series
 
-        The events which occured in tandem with the time-series in the
-        EventRelatedAnalyzer. This object's data has to have the same
-        dimensions as the data in the EventRelatedAnalyzer object. In each
-        sample in the time-series, there is an integer, which denotes the kind
-        of event which occured at that time. In time-bins in which
-        no event occured, a 0 should be entered. The data in this time series
-        object needs to have the same dimensionality as the data in the data
-        time-series
+        len_et : int
+            The expected length of the event-triggered quantity (in the same
+            time-units as the events are represented (presumably number of TRs,
+            for fMRI data). For example, the size of the block dedicated in the
+            fir_matrix to each type of event
 
-        len_et: int
+        zscore : a flag to return the result in zscore (where relevant)
 
-        The expected length of the event-triggered quantity (in the same
-        time-units as the events are represented (presumably number of TRs, for
-        fMRI data). For example, the size of the block dedicated in the
-        fir_matrix to each type of event
-
-        zscore: a flag to return the result in zscore (where relevant)
-
-        correct_baseline: a flag to correct the baseline according to the first
+        correct_baseline : a flag to correct the baseline according to the first
         point in the event-triggered average (where possible)
 
-        offset: the offset of the beginning of the event-related time-series,
+        offset : the offset of the beginning of the event-related time-series,
         relative to the event occurence
         """
         #XXX Change so that the offset and length of the eta can be given in
@@ -138,13 +136,13 @@ class EventRelatedAnalyzer(desc.ResetMixin):
         order of the unique components in the events time-series). shape[-1]
         corresponds to time, and has length = len_et
 
-        XXX code needs to be changed to use flattening (see 'eta' below)
         """
+        # XXX code needs to be changed to use flattening (see 'eta' below)
 
         #Make a list to put the outputs in:
         h = [0] * self._len_h
 
-        for i in xrange(self._len_h):
+        for i in range(self._len_h):
             #XXX Check that the offset makes sense (there can't be an event
             #happening within one offset duration of the beginning of the
             #time-series:
@@ -192,14 +190,14 @@ class EventRelatedAnalyzer(desc.ResetMixin):
         #Make a list to put the outputs in:
         h = [0] * self._len_h
 
-        for i in xrange(self._len_h):
+        for i in range(self._len_h):
             data = self.data[i]
             u = np.unique(self.events[i])
             event_types = u[np.unique(self.events[i]) != 0]
             h[i] = np.empty((event_types.shape[0],
                              self.len_et / 2),
                             dtype=complex)
-            for e_idx in xrange(event_types.shape[0]):
+            for e_idx in range(event_types.shape[0]):
                 this_e = (self.events[i] == event_types[e_idx]) * 1.0
                 if self._zscore:
                     this_h = tsa.freq_domain_xcorr_zscored(data,
@@ -244,13 +242,13 @@ class EventRelatedAnalyzer(desc.ResetMixin):
         #Make a list for the output
         h = [0] * self._len_h
 
-        for i in xrange(self._len_h):
+        for i in range(self._len_h):
             data = self.data[i]
             u = np.unique(self.events[i])
             event_types = u[np.unique(self.events[i]) != 0]
             #Make a list in here as well:
             this_list = [0] * event_types.shape[0]
-            for e_idx in xrange(event_types.shape[0]):
+            for e_idx in range(event_types.shape[0]):
                 idx = np.where(self.events[i] == event_types[e_idx])
 
                 idx_w_len = np.array([idx[0] + count + self.offset for count
@@ -274,7 +272,7 @@ class EventRelatedAnalyzer(desc.ResetMixin):
 
         if self._is_ts:
             # Loop over channels
-            for i in xrange(self._len_h):
+            for i in range(self._len_h):
                 data = self.data[i]
                 u = np.unique(self.events[i])
                 event_types = u[np.unique(self.events[i]) != 0]
@@ -288,7 +286,7 @@ class EventRelatedAnalyzer(desc.ResetMixin):
                 offset = np.arange(self.offset,
                                    self.offset + self.len_et)[:, np.newaxis]
                 # Loop over event types
-                for e_idx in xrange(event_types.shape[0]):
+                for e_idx in range(event_types.shape[0]):
                     idx = np.where(self.events[i] == event_types[e_idx])[0]
                     event_trig = data[idx + offset]
                     #Correct baseline by removing the first point in the series
@@ -310,7 +308,7 @@ class EventRelatedAnalyzer(desc.ResetMixin):
             h = [0] * self._len_h
 
             # Loop over channels
-            for i in xrange(self._len_h):
+            for i in range(self._len_h):
                 #If this is a list with one element:
                 if self._len_h == 1:
                     event_trig = self.data[0][idx + add_offset]
@@ -330,28 +328,60 @@ class EventRelatedAnalyzer(desc.ResetMixin):
     @desc.setattr_on_read
     def ets(self):
         """The event-triggered standard error of the mean """
+
         #Make a list for the output
         h = [0] * self._len_h
 
-        for i in xrange(self._len_h):
-            data = self.data[i]
-            u = np.unique(self.events[i])
-            event_types = u[np.unique(self.events[i]) != 0]
-            h[i] = np.empty((event_types.shape[0], self.len_et), dtype=complex)
-            for e_idx in xrange(event_types.shape[0]):
-                idx = np.where(self.events[i] == event_types[e_idx])
-                idx_w_len = np.array([idx[0] + count + self.offset for count
-                                      in range(self.len_et)])
-                event_trig = data[idx_w_len]
-                #Correct baseline by removing the first point in the series for
-                #each channel:
-                if self._correct_baseline:
-                    event_trig -= event_trig[0]
+        if self._is_ts:
+            # Loop over channels
+            for i in range(self._len_h):
+                data = self.data[i]
+                u = np.unique(self.events[i])
+                event_types = u[np.unique(self.events[i]) != 0]
+                h[i] = np.empty((event_types.shape[0], self.len_et),
+                                dtype=complex)
 
-                h[i][e_idx] = stats.sem(event_trig, axis=-1)
+                # This offset is used to pull the event indices below, but we
+                # have to broadcast it so the shape of the resulting idx+offset
+                # operation below gives us the (nevents, len_et) array we want,
+                # per channel.
+                offset = np.arange(self.offset,
+                                   self.offset + self.len_et)[:, np.newaxis]
+                # Loop over event types
+                for e_idx in range(event_types.shape[0]):
+                    idx = np.where(self.events[i] == event_types[e_idx])[0]
+                    event_trig = data[idx + offset]
+                    #Correct baseline by removing the first point in the series
+                    #for each channel:
+                    if self._correct_baseline:
+                        event_trig -= event_trig[0]
+
+                    h[i][e_idx] = stats.sem(event_trig, -1)
+
+        #In case the input events are an Events:
+        else:
+            #Get the indices necessary for extraction of the eta:
+            add_offset = np.arange(self.offset,
+                                   self.offset + self.len_et)[:, np.newaxis]
+
+            idx = (self.events.time / self.sampling_interval).astype(int)
+
+            #Make a list for the output
+            h = [0] * self._len_h
+
+            # Loop over channels
+            for i in range(self._len_h):
+                #If this is a list with one element:
+                if self._len_h == 1:
+                    event_trig = self.data[0][idx + add_offset]
+                #Otherwise, you need to index straight into the underlying data
+                #array:
+                else:
+                    event_trig = self.data.data[i][idx + add_offset]
+
+                h[i] = stats.sem(event_trig, -1)
 
         h = np.array(h).squeeze()
-
         return ts.TimeSeries(data=h,
                              sampling_interval=self.sampling_interval,
                              t0=self.offset * self.sampling_interval,

@@ -23,15 +23,15 @@ class CoherenceAnalyzer(BaseAnalyzer):
         Parameters
         ----------
 
-        input: TimeSeries object
+        input : TimeSeries object
            Containing the data to analyze.
 
-        method: dict, optional,
+        method : dict, optional,
             This is the method used for spectral analysis of the signal for the
             coherence caclulation. See :func:`algorithms.get_spectra`
             documentation for details.
 
-        unwrap_phases: bool, optional
+        unwrap_phases : bool, optional
            Whether to unwrap the phases. This should be True if you assume that
            the time-delay is the same for all the frequency bands. See
            _[Sun2005] for details. Default : False
@@ -43,8 +43,8 @@ class CoherenceAnalyzer(BaseAnalyzer):
         >>> t1 = ts.TimeSeries(data = np.arange(0,1024,1).reshape(2,512),
         ...                                 sampling_rate=np.pi)
         >>> c1 = CoherenceAnalyzer(t1)
-        >>> c1.method['Fs']
-        3.14159265359 Hz
+        >>> c1.method['Fs'] # doctest: +ELLIPSIS
+        3.1415926535... Hz
         >>> c1.method['this_method']
         'welch'
         >>> c1.coherence[0,1]
@@ -104,8 +104,8 @@ class CoherenceAnalyzer(BaseAnalyzer):
                               tseries_length,
                               spectrum_length), dtype=complex)
 
-        for i in xrange(tseries_length):
-            for j in xrange(i, tseries_length):
+        for i in range(tseries_length):
+            for j in range(i, tseries_length):
                 coherency[i][j] = tsa.coherency_spec(self.spectrum[i][j],
                                                      self.spectrum[i][i],
                                                      self.spectrum[j][j])
@@ -151,8 +151,8 @@ class CoherenceAnalyzer(BaseAnalyzer):
                               tseries_length,
                               spectrum_length))
 
-        for i in xrange(tseries_length):
-            for j in xrange(i, tseries_length):
+        for i in range(tseries_length):
+            for j in range(i, tseries_length):
                 coherence[i][j] = tsa.coherence_spec(self.spectrum[i][j],
                                                      self.spectrum[i][i],
                                                      self.spectrum[j][j])
@@ -176,8 +176,8 @@ class CoherenceAnalyzer(BaseAnalyzer):
                             tseries_length,
                             spectrum_length))
 
-        for i in xrange(tseries_length):
-            for j in xrange(i, tseries_length):
+        for i in range(tseries_length):
+            for j in range(i, tseries_length):
                 phase[i][j] = np.angle(
                     self.spectrum[i][j])
 
@@ -190,8 +190,8 @@ class CoherenceAnalyzer(BaseAnalyzer):
         """ The delay in seconds between the two time series """
         p_shape = self.phase.shape[:-1]
         delay = np.zeros(self.phase.shape)
-        for i in xrange(p_shape[0]):
-            for j in xrange(p_shape[1]):
+        for i in range(p_shape[0]):
+            for j in range(p_shape[1]):
                 this_phase = self.phase[i, j]
                 #If requested, unwrap the phases:
                 if self._unwrap_phases:
@@ -214,9 +214,9 @@ class CoherenceAnalyzer(BaseAnalyzer):
                                 tseries_length,
                                 spectrum_length))
 
-        for i in xrange(tseries_length):
-            for j in xrange(tseries_length):
-                for k in xrange(tseries_length):
+        for i in range(tseries_length):
+            for j in range(tseries_length):
+                for k in range(tseries_length):
                     if j == k or i == k:
                         pass
                     else:
@@ -246,9 +246,9 @@ class MTCoherenceAnalyzer(BaseAnalyzer):
         Parameters
         ----------
 
-        input: TimeSeries object
+        input : TimeSeries object
 
-        bandwidth: float,
+        bandwidth : float,
            The bandwidth of the windowing function will determine the number
            tapers to use. This parameters represents trade-off between
            frequency resolution (lower main lobe bandwidth for the taper) and
@@ -256,12 +256,12 @@ class MTCoherenceAnalyzer(BaseAnalyzer):
            estimates). Per default will be set to 4 times the fundamental
            frequency, such that NW=4
 
-        alpha: float, default =0.05
+        alpha : float, default =0.05
             This is the alpha used to construct a confidence interval around
             the multi-taper csd estimate, based on a jack-knife estimate of the
             variance [Thompson2007]_.
 
-        adaptive: bool, default to True
+        adaptive : bool, default to True
             Whether to set the weights for the tapered spectra according to the
             adaptive algorithm (Thompson, 2007).
 
@@ -318,7 +318,7 @@ class MTCoherenceAnalyzer(BaseAnalyzer):
         w = np.empty((channel_n, self.df, self._L))
 
         if self._adaptive:
-            for i in xrange(channel_n):
+            for i in range(channel_n):
                 # this is always a one-sided spectrum?
                 w[i] = tsu.adaptive_weights(self.spectra[i],
                                             self.eigs,
@@ -342,8 +342,8 @@ class MTCoherenceAnalyzer(BaseAnalyzer):
         psd_mat = np.zeros((2, nrows, nrows, self._L), 'd')
         coh_mat = np.zeros((nrows, nrows, self._L), 'd')
 
-        for i in xrange(self.input.data.shape[0]):
-            for j in xrange(i):
+        for i in range(self.input.data.shape[0]):
+            for j in range(i):
                 sxy = tsa.mtm_cross_spectrum(self.spectra[i], self.spectra[j],
                                            (self.weights[i], self.weights[j]),
                                            sides='onesided')
@@ -369,8 +369,8 @@ class MTCoherenceAnalyzer(BaseAnalyzer):
         coh_var = np.zeros((self.input.data.shape[0],
                             self.input.data.shape[0],
                             self._L), 'd')
-        for i in xrange(self.input.data.shape[0]):
-            for j in xrange(i):
+        for i in range(self.input.data.shape[0]):
+            for j in range(i):
                 if i != j:
                     coh_var[i, j] = tsu.jackknifed_coh_variance(
                         self.spectra[i],
@@ -418,14 +418,13 @@ class SparseCoherenceAnalyzer(BaseAnalyzer):
         Parameters
         ----------
 
-        time_series: a time-series object
+        time_series : a time-series object
 
-        ij: a list of tuples, each containing a pair of indices.
-
+        ij : a list of tuples, each containing a pair of indices.
            The resulting cache will contain the fft of time-series in the rows
            indexed by the unique elements of the union of i and j
 
-        lb,ub: float,optional, default: lb=0, ub=None (max frequency)
+        lb,ub : float,optional, default: lb=0, ub=None (max frequency)
 
             define a frequency band of interest
 
@@ -433,9 +432,9 @@ class SparseCoherenceAnalyzer(BaseAnalyzer):
 
             Does exactly what the name implies. If you have enough memory
 
-        method: optional, dict
-
-        The method for spectral estimation (see :func:`algorithms.get_spectra`)
+        method : optional, dict
+             The method for spectral estimation (see
+             :func:`algorithms.get_spectra`)
 
         """
 
@@ -597,7 +596,7 @@ class SeedCoherenceAnalyzer(object):
 
         if ('this_method' in self.method.keys() and
             self.method['this_method'] != 'welch'):
-            e_s = "For SparseCoherenceAnalyzer, "
+            e_s = "For SeedCoherenceAnalyzer, "
             e_s += "spectral estimation method must be welch"
             raise ValueError(e_s)
 
@@ -638,7 +637,7 @@ class SeedCoherenceAnalyzer(object):
         #target.
 
         #This is the kind of input that cache_fft expects:
-        ij = zip(np.arange(data.shape[0]), np.arange(data.shape[0]))
+        ij = list(zip(np.arange(data.shape[0]), np.arange(data.shape[0])))
 
         f, cache = tsa.cache_fft(data, ij, lb=self.lb, ub=self.ub,
                                  method=self.method,
@@ -668,7 +667,7 @@ class SeedCoherenceAnalyzer(object):
         #This is a list of indices into the cached fft window libraries,
         #setting the index of the seed to be -1, so that it is easily
         #distinguished from the target indices:
-        ij = zip(np.ones_like(target_chan_idx) * -1, target_chan_idx)
+        ij = list(zip(np.ones_like(target_chan_idx) * -1, target_chan_idx))
 
         #If there is more than one channel in the seed time-series:
         if len(self.seed.shape) > 1:

@@ -71,17 +71,15 @@ def test_periodogram():
     arsig, _, _ = ut.ar_generator(N=512)
     avg_pwr = (arsig * arsig.conjugate()).mean()
     f, psd = tsa.periodogram(arsig, N=2048)
-    # for efficiency, let's leave out the 2PI in the numerator and denominator
-    # for the following integral
-    dw = 1. / 2048
-    avg_pwr_est = np.trapz(psd, dx=dw)
+    df = 2. * np.pi / 2048
+    avg_pwr_est = np.trapz(psd, dx=df)
     npt.assert_almost_equal(avg_pwr, avg_pwr_est, decimal=1)
 
 
 def permutation_system(N):
     p = np.zeros((N, N))
-    targets = range(N)
-    for i in xrange(N):
+    targets = list(range(N))
+    for i in range(N):
         popper = np.random.randint(0, high=len(targets))
         j = targets.pop(popper)
         p[i, j] = 1

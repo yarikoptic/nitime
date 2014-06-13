@@ -20,5 +20,6 @@ semantically clear code.
 
 Questions? Comments? Please `email`_ us.
 
-.. _email: http://projects.scipy.org/mailman/listinfo/nipy-devel
+To follow along with the development, and join in the fun, head over to our `github webpage <http://github.com/nipy/nitime/>`_.
 
+.. _email: http://projects.scipy.org/mailman/listinfo/nipy-devel
