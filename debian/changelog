@@ -1,8 +1,12 @@
 nitime (0.5-1) unstable; urgency=medium
 
   * New release
+    - does not ship sphinxext/inheritance_diagram.py any longer
+      (Closes: #706533)
+  * debian/copyright
+    - extended to cover added 3rd party snippets and updated years
 
- -- Yaroslav Halchenko <debian@onerussian.com>  Fri, 13 Jun 2014 18:49:32 -0400
+ -- Yaroslav Halchenko <debian@onerussian.com>  Sat, 14 Jun 2014 07:34:18 -0400
 
 nitime (0.4-2) unstable; urgency=low
 
