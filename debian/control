@@ -39,7 +39,7 @@ Description: timeseries analysis for neuroscience data (nitime)
 Package: python-nitime-doc
 Architecture: all
 Section: doc
-Depends: ${misc:Depends}, libjs-jquery
+Depends: ${misc:Depends}, libjs-jquery, libjs-underscore
 Suggests: python-nitime
 Description: timeseries analysis for neuroscience data (nitime) -- documentation
  Nitime is a Python module for time-series analysis of data from
