@@ -1,6 +1,8 @@
 nitime (0.5-2) UNRELEASED; urgency=medium
 
   * Update maintainer email address.
+  * Remove dependency on python-support, while upgrading to dh9
+    (Closes: #786233).
 
  -- Michael Hanke <mih@debian.org>  Mon, 24 Aug 2015 18:53:56 +0200
 
