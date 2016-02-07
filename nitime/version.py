@@ -3,10 +3,10 @@ from nitime.six.moves import map
 
 # Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
 _version_major = 0
-_version_minor = 5
+_version_minor = 6
 _version_micro = ''  # use '' for first of series, number for 1 and above
-_version_extra = ''
-#_version_extra = ''  # Uncomment this for full releases
+#_version_extra = 'dev'
+_version_extra = ''  # Uncomment this for full releases
 
 # Construct full version string from these.
 _ver = [_version_major, _version_minor]
@@ -46,7 +46,7 @@ Website and mailing list
 ========================
 
 Current information can always be found at the nitime `website`_. Questions and
-comments can be directed to the mailing `list`_. 
+comments can be directed to the mailing `list`_.
 
 .. _website: http://nipy.org/nitime
 .. _list: http://mail.scipy.org/mailman/listinfo/nipy-devel
@@ -76,7 +76,7 @@ for usage, and a DISCLAIMER OF ALL WARRANTIES.
 
 All trademarks referenced herein are property of their respective holders.
 
-Copyright (c) 2006-2012, NIPY Developers
+Copyright (c) 2006-2014, NIPY Developers
 All rights reserved.
 """
 

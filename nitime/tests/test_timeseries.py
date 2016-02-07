@@ -89,7 +89,7 @@ def test_TimeArray_math():
     tnew = timeunits + list(range(10))
     npt.assert_equal(tnew, timeunits+time1) # recall that time1 was 0-10ms
 
-    
+
 
 def test_TimeArray_comparison():
     "Comparison with unitless quantities should convert to TimeArray units"
@@ -330,7 +330,7 @@ def test_UniformTime_index_at():
 def test_TimeArray_getset():
     t1 = ts.TimeSeries(data = np.random.rand(2, 3, 4), sampling_rate=1)
     npt.assert_equal(t1[0],t1.data[...,0])
-    
+
 
 
 
@@ -542,7 +542,7 @@ def test_TimeSeries():
     tseries2 = tseries1 * 2
     npt.assert_equal(tseries1.data * 2, tseries2.data)
     npt.assert_equal(tseries1.time, tseries2.time)
-    tseries2 /= 2
+    tseries2 = tseries2 / 2
     npt.assert_equal(tseries1.data, tseries2.data)
     npt.assert_equal(tseries1.time, tseries2.time)
 
@@ -891,16 +891,18 @@ def test_index_int64():
     assert b[0] == b[np.int32(0)]
     assert repr(b[0]) == repr(b[np.int32(0)])
 
+
 def test_timearray_math_functions():
     "Calling TimeArray.min() .max(), mean() should return TimeArrays"
-    a = np.arange(2,11)
-    for f in ['min','max','mean', 'ptp', 'sum']:
+    a = np.arange(2, 11)
+    for f in ['min', 'max', 'mean', 'ptp', 'sum']:
         for tu in ['s', 'ms', 'ps', 'D']:
             b = ts.TimeArray(a, time_unit=tu)
-            assert getattr(b, f)().__class__ == ts.TimeArray
-            assert getattr(b, f)().time_unit== b.time_unit
+            npt.assert_(getattr(b, f)().__class__ == ts.TimeArray)
+            npt.assert_(getattr(b, f)().time_unit == b.time_unit)
             # comparison with unitless should convert to the TimeArray's units
-            assert getattr(b, f)() == getattr(a,f)()
+            npt.assert_(getattr(b, f)() == getattr(a, f)())
+
 
 def test_timearray_var_prod():
     """
