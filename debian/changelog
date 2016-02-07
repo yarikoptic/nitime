@@ -1,3 +1,10 @@
+nitime (0.6-1) unstable; urgency=medium
+
+  * Fresh upstream bugfix release
+  * debian/patches -- dropped 2 patches previously picked up from upstream VCS
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Sun, 07 Feb 2016 18:57:21 -0500
+
 nitime (0.5-3) unstable; urgency=medium
 
   * Include upstream patch for modern matplotlib versions (Closes: #802524).
