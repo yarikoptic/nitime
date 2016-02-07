@@ -13,7 +13,7 @@ export MPLCONFIGDIR=$(CURDIR)/build
 export HOME=$(CURDIR)/build
 
 %:
-	dh $@
+	dh $@ --with python2
 
 override_dh_auto_test:
 	: # Do not test just after build, lets install and then test
@@ -30,6 +30,7 @@ ifeq (,$(filter nodoc,$(DEB_BUILD_OPTIONS)))
 	export PYTHONPATH=$$(/bin/ls -d $(INSTALL_PATH)/usr/lib/$(PYTHON)/*-packages); \
 	$(MAKE) -C doc html
 	-rm doc/_build/html/_static/jquery.js
+	-rm doc/_build/html/_static/underscore.js
 	-rm -r doc/_build/html/_sources
 	: # objects inventory is of no use for the package
 	-rm doc/_build/html/objects.inv

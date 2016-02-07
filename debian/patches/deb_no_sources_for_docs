@@ -1,6 +1,6 @@
 --- a/doc/conf.py
 +++ b/doc/conf.py
-@@ -131,6 +131,9 @@ today_fmt = '%B %d, %Y, %H:%M PDT'
+@@ -134,6 +134,9 @@
  # for source files.
  exclude_trees = ['_build']
  
