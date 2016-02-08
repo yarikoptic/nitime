@@ -1,6 +1,6 @@
 nitime (0.6-1) unstable; urgency=medium
 
-  * Fresh upstream bugfix release
+  * Fresh upstream bugfix release (Closes: #812700)
   * debian/patches -- dropped 2 patches previously picked up from upstream VCS
   * debian/watch -- adjusted for deprecated githubredir
 
