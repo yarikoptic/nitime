@@ -1,4 +1,4 @@
 version=3
 
-opts="uversionmangle=s/rc/~rc/g" \
- http://githubredir.debian.net/github/nipy/nitime/ rel/(.+).tar.gz
+opts="uversionmangle=s/rc/~rc/,filenamemangle=s/.*?([\d\.]+)\..*/nitime_$1.orig.tar.gz/" \
+ https://github.com/nipy/nitime/tags .*/archive/rel/([\d\.]+)\.(?:tgz|tbz2|txz|tar\.(?:gz|bz2|xz))
