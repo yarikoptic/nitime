@@ -1,3 +1,12 @@
+nitime (0.6+git15-g4951606-1) unstable; urgency=medium
+
+  * New upstream snapshot from rel/0.6-15-g4951606 
+    - contains fixes for compatibility with recent matplotlib etc
+  * debian/control
+    - boosted policy to 3.9.8
+
+ -- Yaroslav Halchenko <debian@onerussian.com>  Wed, 03 Aug 2016 22:42:06 -0400
+
 nitime (0.6-1) unstable; urgency=medium
 
   * Fresh upstream bugfix release (Closes: #812700)
