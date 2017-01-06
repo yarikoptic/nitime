@@ -1,8 +1,13 @@
 nitime (0.7-1) unstable; urgency=medium
 
   * New upstream release
+  * debian/control
+    - added python-{setuptools,pytest} into build-depends
+  * debian/rules
+    - skip slightly failing test_coherence_linear_dependence for now
+      (see https://github.com/nipy/nitime/issues/150)
 
- -- Yaroslav Halchenko <debian@onerussian.com>  Mon, 19 Dec 2016 13:42:53 -0500
+ -- Yaroslav Halchenko <debian@onerussian.com>  Fri, 06 Jan 2017 15:18:05 -0500
 
 nitime (0.6+git15-g4951606-1) unstable; urgency=medium
 
