@@ -1,6 +1,9 @@
 nitime (0.7-2) unstable; urgency=high
 
   * Use mathjax sphinx.ext if no pngmath is available (Closes: #922256)
+  * debian/control
+    - boost policy to 4.3.0
+    - remove obsolete X-Python*
 
  -- Yaroslav Halchenko <debian@onerussian.com>  Thu, 21 Feb 2019 12:50:06 -0500
 
