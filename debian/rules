@@ -1,19 +1,19 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
 
-PACKAGE_NAME = python-nitime
+PACKAGE_NAME = python3-nitime
 PACKAGE_ROOT_DIR = debian/${PACKAGE_NAME}
 INSTALL_PATH = $(CURDIR)/debian/tmp
 
 # default Python
-PYTHON=$(shell pyversions -d)
+PYTHON=$(shell py3versions -d)
 
 # override matplotlib config directory
 export MPLCONFIGDIR=$(CURDIR)/build
 export HOME=$(CURDIR)/build
 
 %:
-	dh $@ --with python2
+	dh $@ --with python3 --buildsystem pybuild
 
 override_dh_auto_test:
 	: # Do not test just after build, lets install and then test
@@ -28,7 +28,8 @@ override_dh_auto_install:
 	: # Only now lets build docs
 ifeq (,$(filter nodoc,$(DEB_BUILD_OPTIONS)))
 	export PYTHONPATH=$$(/bin/ls -d $(INSTALL_PATH)/usr/lib/$(PYTHON)/*-packages); \
-	$(MAKE) -C doc html
+	$(MAKE) -C doc html-no-exec
+	# TODO: remove -no-exec when doc/examples/filtering_fmri.py is fixed
 	-rm doc/_build/html/_static/jquery.js
 	-rm doc/_build/html/_static/underscore.js
 	-rm -r doc/_build/html/_sources
@@ -40,11 +41,11 @@ endif
 # cd build to prevent use of local/not-built source tree
 ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 	cd build; \
-	for PYTHON in $(shell pyversions -r); do \
+	for PYTHON in $(shell py3versions -r); do \
 		echo "I: Running NiTime unittests using $$PYTHON"; \
 		PYTHONPATH=$$(/bin/ls -d $(INSTALL_PATH)/usr/lib/$$PYTHON/*-packages) \
 		MPLCONFIGDIR=/tmp/ \
-			$$PYTHON /usr/bin/nosetests '--exclude=test_(coherence_linear_dependence|lazy_reload)' nitime; \
+			$$PYTHON /usr/bin/nosetests3 '--exclude=test_(coherence_linear_dependence|lazy_reload)' nitime; \
 	done
 endif
 

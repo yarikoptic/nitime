@@ -1,0 +1,92 @@
+--- nitime.orig/tools/build_modref_templates.py
++++ nitime/tools/build_modref_templates.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python
++#!/usr/bin/env python3
+ """Script to auto-generate our API docs.
+ """
+ # stdlib imports
+--- nitime.orig/tools/github_stats.py
++++ nitime/tools/github_stats.py
+@@ -1,11 +1,11 @@
+-#!/usr/bin/env python
++#!/usr/bin/env python3
+ """Simple tools to query github.com and gather stats about issues.
+ """
+ #-----------------------------------------------------------------------------
+ # Imports
+ #-----------------------------------------------------------------------------
+ 
+-from __future__ import print_function
++
+ 
+ import json
+ import re
+--- nitime.orig/tools/gitwash_dumper.py
++++ nitime/tools/gitwash_dumper.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python
++#!/usr/bin/env python3
+ ''' Checkout gitwash repo into directory and do search replace on name '''
+ 
+ import os
+@@ -84,7 +84,7 @@
+     for rep_glob in rep_globs:
+         fnames += fnmatch.filter(out_fnames, rep_glob)
+     if verbose:
+-        print '\n'.join(fnames)
++        print('\n'.join(fnames))
+     for fname in fnames:
+         filename_search_replace(replace_pairs, fname, False)
+         for in_exp, out_exp in renames:
+--- nitime.orig/tools/build_release
++++ nitime/tools/build_release
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python
++#!/usr/bin/env python3
+ """Nitime release build script.
+ """
+ from toollib import *
+--- nitime.orig/tools/ex2rst
++++ nitime/tools/ex2rst
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python
++#!/usr/bin/env python3
+ #
+ # Note: this file is copied (possibly with minor modifications) from the
+ # sources of the PyMVPA project - http://pymvpa.org.  It remains licensed as
+--- nitime.orig/tools/make_examples.py
++++ nitime/tools/make_examples.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python
++#!/usr/bin/env python3
+ """Run the py->rst conversion and run all examples.
+ 
+ This also creates the index.rst file appropriately, makes figures, etc.
+--- nitime.orig/tools/release
++++ nitime/tools/release
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python
++#!/usr/bin/env python3
+ """Nitime release script.
+ 
+ This should only be run at real release time.
+--- nitime.orig/setup.py
++++ nitime/setup.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python
++#!/usr/bin/env python3
+ """Setup file for the Python nitime package."""
+ 
+ import os
+--- nitime.orig/doc/Makefile
++++ nitime/doc/Makefile
+@@ -37,7 +37,7 @@
+ 	@echo "Build finished. The HTML pages are in _build/html."
+ 
+ api:
+-	python ../tools/build_modref_templates.py
++	python3 ../tools/build_modref_templates.py
+ 	@echo "Build API docs finished."
+ 
+ html: rstexamples api htmlonly
