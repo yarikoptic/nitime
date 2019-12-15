@@ -2,9 +2,9 @@
 
 # Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
 _version_major = 0
-_version_minor = 7
-_version_micro = ''  # use '' for first of series, number for 1 and above
-#_version_extra = 'dev'
+_version_minor = 8
+_version_micro = 1  # use '' for first of series, number for 1 and above
+# _version_extra = 'dev'
 _version_extra = ''  # Uncomment this for full releases
 
 # Construct full version string from these.
@@ -75,7 +75,7 @@ for usage, and a DISCLAIMER OF ALL WARRANTIES.
 
 All trademarks referenced herein are property of their respective holders.
 
-Copyright (c) 2006-2014, NIPY Developers
+Copyright (c) 2006-2016, NIPY Developers
 All rights reserved.
 """
 
@@ -95,5 +95,4 @@ MINOR = _version_minor
 MICRO = _version_micro
 VERSION = __version__
 PACKAGE_DATA = {"nitime": ["LICENSE", "tests/*.txt", "tests/*.npy",
-                                  "data/*.nii.gz","data/*.txt", "data/*.csv"]}
-REQUIRES = ["numpy", "matplotlib", "scipy"]
+                           "data/*.nii.gz", "data/*.txt", "data/*.csv"]}
