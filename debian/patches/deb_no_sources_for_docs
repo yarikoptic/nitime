@@ -1,6 +1,8 @@
---- a/doc/conf.py
-+++ b/doc/conf.py
-@@ -121,6 +121,9 @@ today_fmt = '%B %d, %Y, %H:%M PDT'
+Author: Yaroslav Halchenko <debian@onerussian.com>
+Description: prevent inclusion of _sources which obscures offline search
+--- nitime.orig/doc/conf.py
++++ nitime/doc/conf.py
+@@ -120,6 +120,9 @@
  # for source files.
  exclude_trees = ['_build']
  
