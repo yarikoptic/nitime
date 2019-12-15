@@ -5,7 +5,8 @@ Event-related analysis
 """
 
 import numpy as np
-import scipy.linalg as linalg
+from nitime.lazy import scipy_linalg as linalg
+from nitime.lazy import scipy_fftpack as fftpack
 
 
 def fir(timeseries, design):
@@ -28,7 +29,7 @@ def fir(timeseries, design):
 
           where A is a (number of TRs) x (length of HRF) matrix with a unity
           matrix placed with its top left corner placed in each TR in which
-          event of type A occured in the design. B is the equivalent for
+          event of type A occurred in the design. B is the equivalent for
           events of type B, etc.
 
     Returns
@@ -43,21 +44,20 @@ def fir(timeseries, design):
     Notes
     -----
 
-    Implements equation 4 in[Burock2000]_:
+    Implements equation 4 in Burock(2000):
 
     .. math::
 
         \hat{h} = (X^T X)^{-1} X^T y
 
-    .. [Burock2000] M.A. Burock and A.M.Dale (2000). Estimation and Detection
-        of Event-Related fMRI Signals with Temporally Correlated Noise: A
-        Statistically Efficient and Unbiased Approach. Human Brain Mapping,
-        11:249-260
+    M.A. Burock and A.M.Dale (2000). Estimation and Detection of Event-Related
+    fMRI Signals with Temporally Correlated Noise: A Statistically Efficient
+    and Unbiased Approach. Human Brain Mapping, 11:249-260
 
     """
-    X = np.matrix(design)
-    y = np.matrix(timeseries)
-    h = np.array(linalg.pinv(X.T * X) * X.T * y.T)
+    h = np.array(np.dot(np.dot(linalg.pinv(np.dot(design.T, design)),
+                               design.T),
+                        timeseries.T))
     return h
 
 
@@ -91,15 +91,15 @@ def freq_domain_xcorr(tseries, events, t_before, t_after, Fs=1):
         time-series) of an LTI.
 
     """
-    fft = np.fft.fft
-    ifft = np.fft.ifft
-    fftshift = np.fft.fftshift
+    fft = fftpack.fft
+    ifft = fftpack.ifft
+    fftshift = fftpack.fftshift
 
     xcorr = np.real(fftshift(ifft(fft(tseries) *
                                   fft(np.fliplr([events])))))
 
-    return xcorr[0][np.ceil(len(xcorr[0]) / 2) - t_before * Fs:
-                np.ceil(len(xcorr[0]) / 2) + t_after / 2 * Fs] / np.sum(events)
+    return xcorr[0][int(np.ceil(len(xcorr[0]) // 2) - t_before * Fs):
+                    int(np.ceil(len(xcorr[0]) // 2) + t_after // 2 * Fs)] / np.sum(events)
 
 
 def freq_domain_xcorr_zscored(tseries, events, t_before, t_after, Fs=1):
@@ -135,16 +135,16 @@ def freq_domain_xcorr_zscored(tseries, events, t_before, t_after, Fs=1):
 
     """
 
-    fft = np.fft.fft
-    ifft = np.fft.ifft
-    fftshift = np.fft.fftshift
+    fft = fftpack.fft
+    ifft = fftpack.ifft
+    fftshift = fftpack.fftshift
 
     xcorr = np.real(fftshift(ifft(fft(tseries) * fft(np.fliplr([events])))))
 
     meanSurr = np.mean(xcorr)
     stdSurr = np.std(xcorr)
 
-    return (((xcorr[0][np.ceil(len(xcorr[0]) / 2) - t_before * Fs:
-                    np.ceil(len(xcorr[0]) / 2) + t_after * Fs])
-             - meanSurr)
-             / stdSurr)
+    return (((xcorr[0][int(np.ceil(len(xcorr[0]) // 2) - t_before * Fs):
+                       int(np.ceil(len(xcorr[0]) // 2) + t_after * Fs)]) -
+             meanSurr) /
+            stdSurr)

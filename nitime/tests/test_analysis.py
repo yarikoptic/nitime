@@ -1,5 +1,6 @@
 import numpy as np
 import numpy.testing as npt
+import pytest
 import nitime.timeseries as ts
 import nitime.analysis as nta
 
@@ -70,10 +71,10 @@ def test_CorrelationAnalyzer():
     C = nta.CorrelationAnalyzer(T)
 
     # Test the symmetry: correlation(x,y)==correlation(y,x)
-    npt.assert_equal(C.corrcoef[0, 1], C.corrcoef[1, 0])
+    npt.assert_almost_equal(C.corrcoef[0, 1], C.corrcoef[1, 0])
     # Test the self-sameness: correlation(x,x)==1
-    npt.assert_equal(C.corrcoef[0, 0], 1)
-    npt.assert_equal(C.corrcoef[1, 1], 1)
+    npt.assert_almost_equal(C.corrcoef[0, 0], 1)
+    npt.assert_almost_equal(C.corrcoef[1, 1], 1)
 
     # Test the cross-correlation:
     # First the symmetry:
@@ -85,8 +86,7 @@ def test_CorrelationAnalyzer():
                             C.corrcoef[0, 1])
 
     # And the auto-correlation should be equal to 1 at 0 time-lag:
-    npt.assert_equal(C.xcorr_norm.data[0, 0, C.xcorr_norm.time == 0], 1)
-
+    npt.assert_almost_equal(C.xcorr_norm.data[0, 0, C.xcorr_norm.time == 0], 1)
     # Does it depend on having an even number of time-points?
     # make another time-series with an odd number of items:
     t = np.arange(1023)
@@ -117,7 +117,7 @@ def test_EventRelatedAnalyzer():
 
     T_signal = ts.TimeSeries(signal, sampling_rate=1)
     T_events = ts.TimeSeries(events, sampling_rate=1)
-    for correct_baseline in [True,False]:
+    for correct_baseline in [True, False]:
         ETA = nta.EventRelatedAnalyzer(T_signal, T_events, l / (cycles * 2),
                                        correct_baseline=correct_baseline).eta
         # This should hold
@@ -176,12 +176,13 @@ def test_EventRelatedAnalyzer():
 
     # Test that providing the analyzer with an array, instead of an Events or a
     # TimeSeries object throws an error:
-    npt.assert_raises(ValueError, nta.EventRelatedAnalyzer, ts2, events, 10)
+    with pytest.raises(ValueError) as e_info:
+        nta.EventRelatedAnalyzer(ts2, events, 10)
 
     # This is not yet implemented, so this should simply throw an error, for
     # now:
-    npt.assert_raises(NotImplementedError,
-                      nta.EventRelatedAnalyzer.FIR_estimate, EA)
+    with pytest.raises(NotImplementedError) as e_info:
+        nta.EventRelatedAnalyzer.FIR_estimate(EA)
 
 def test_HilbertAnalyzer():
     """Testing the HilbertAnalyzer (analytic signal)"""
@@ -233,21 +234,32 @@ def test_FilterAnalyzer():
     #Make sure that the DC is preserved
     f_slow = nta.FilterAnalyzer(slow_ts, ub=0.6)
     f_fast = nta.FilterAnalyzer(fast_ts, lb=0.6)
+
     npt.assert_almost_equal(f_slow.filtered_fourier.data.mean(),
                             slow_mean,
                             decimal=2)
+
     npt.assert_almost_equal(f_slow.filtered_boxcar.data.mean(),
                             slow_mean,
                             decimal=2)
+
     npt.assert_almost_equal(f_slow.fir.data.mean(),
+                            slow_mean)
+
+    npt.assert_almost_equal(f_slow.iir.data.mean(),
                             slow_mean)
 
     npt.assert_almost_equal(f_fast.filtered_fourier.data.mean(),
                             10)
+
     npt.assert_almost_equal(f_fast.filtered_boxcar.data.mean(),
                             10,
                             decimal=2)
+
     npt.assert_almost_equal(f_fast.fir.data.mean(),
+                            10)
+
+    npt.assert_almost_equal(f_fast.iir.data.mean(),
                             10)
 
     #Check that things work with a two-channel time-series:
@@ -259,6 +271,17 @@ def test_FilterAnalyzer():
     npt.assert_equal(f_both.filtered_boxcar.shape, T2.shape)
     npt.assert_equal(f_both.filtered_fourier.shape, T2.shape)
 
+    # Check that t0 is propagated to the filtered time-series
+    t0 = np.pi
+    T3 = ts.TimeSeries(np.vstack([fast, slow]), sampling_rate=np.pi, t0=t0)
+    f_both = nta.FilterAnalyzer(T3, ub=1.0, lb=0.1)
+    # These are rather basic tests:
+    npt.assert_equal(f_both.fir.t0, ts.TimeArray(t0, time_unit=T3.time_unit))
+    npt.assert_equal(f_both.iir.t0, ts.TimeArray(t0, time_unit=T3.time_unit))
+    npt.assert_equal(f_both.filtered_boxcar.t0, ts.TimeArray(t0,
+                                                    time_unit=T3.time_unit))
+    npt.assert_equal(f_both.filtered_fourier.t0, ts.TimeArray(t0,
+                                                     time_unit=T3.time_unit))
 
 def test_NormalizationAnalyzer():
     """Testing the NormalizationAnalyzer """
@@ -291,5 +314,3 @@ def test_MorletWaveletAnalyzer():
     npt.assert_almost_equal(np.sin(HL.phase.data[10:-10]),
                             np.sin(WL.phase.data[10:-10]),
                             decimal=0)
-
-

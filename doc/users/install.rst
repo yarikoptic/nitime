@@ -14,16 +14,10 @@ Dependencies
 Must Have
 ~~~~~~~~~
 
-Python_ 2.5 or later
-
-NumPy_ 1.3 or later
-
-SciPy_ 0.7 or later
-  Numpy and Scipy are high-level, optimized scientific computing libraries.
-
-Matplotlib_
-  Python plotting library. In particular, :mod:`Nitime` makes use of the
-  :mod:`matplotlib.mlab` module for some implementation of numerical algorithms
+Nitime supports Python_ 2.7 and 3.3/3.4/3.5, requiring also reasonably recent
+versions of NumPy_ and SciPy_, as well as Matplotlib_ (In particular,
+:mod:`Nitime` makes use of the :mod:`matplotlib.mlab` module for some
+implementation of numerical algorithms)
 
 Recommended/optional
 ~~~~~~~~~~~~~~~~~~~~
@@ -42,34 +36,39 @@ Nibabel_
 Getting the latest release
 --------------------------
 
-Grab the latest release of the source-code at this page_ 
+Using the standard `pip` installation mechanism, you can install nitime by
+issuing the following command in your terminal::
+
+     pip install nitime
+
+The source code of the latest release is also available to download at the
+cheeseshop_, or in our Github repo release page_
 
 .. _page: gh-download_
 
-Or, at the cheeseshop_
-
 .. _cheeseshop: nitime-pypi_
-
-You can also download and install by issuing::
-
-    easy_install nitime
-
-If you have easy_install installed.
 
 If you want to download the source-code as it is being developed (pre-release),
 follow the instructions here: :ref:`following-latest`
 
 Or, if you just want to look at the current development, without using our
-source version-control system, go here_
+source version-control system, you can download it directly here_
 
 .. _here: gh-archive_
+
+You can also install nitime using conda_, by issuing the following commands::
+
+    conda config --add channels conda-forge
+    conda install nitime
+
 
 
 Building from source
 --------------------
 
 The installation process is similar to other Python packages so it
-will be familiar if you have Python experience.
+will be familiar if you have Python experience. In addition to the previously
+mentioned dependencies, you will need to have cython_ installed
 
 Unpack the tarball and change into the source directory.  Once in the
 source directory, you can build nitime using::

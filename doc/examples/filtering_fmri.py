@@ -28,7 +28,6 @@ import os
 
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.mlab import csv2rec
 
 
 """
@@ -57,7 +56,11 @@ the data was saved:
 """
 
 TR = 1.89
-data_rec = csv2rec('data/fmri_timeseries.csv')
+
+data_path = os.path.join(nitime.__path__[0], 'data')
+
+data = np.loadtxt(os.path.join(data_path, 'fmri_timeseries.csv'),
+                  skiprows=1, delimiter=',')
 
 # Extract ROI information from the csv file headers:
 roi_names = np.array(data_rec.dtype.names)
@@ -109,7 +112,7 @@ ax01.plot(S_original.psd[0],
           label='Welch PSD')
 
 ax01.plot(S_original.spectrum_fourier[0],
-          S_original.spectrum_fourier[1][9],
+          np.abs(S_original.spectrum_fourier[1][9]),
           label='FFT')
 
 ax01.plot(S_original.periodogram[0],
@@ -343,7 +346,7 @@ the following line will find the path to this data on the specific computer:
 """
 
 data_file_path = test_dir_path = os.path.join(nitime.__path__[0],
-                                              'fmri/tests/')
+                                              'data')
 
 fmri_file = os.path.join(data_file_path, 'fmri1.nii.gz')
 

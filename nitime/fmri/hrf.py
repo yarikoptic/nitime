@@ -1,5 +1,6 @@
+from __future__ import print_function
 import numpy as np
-from scipy import factorial
+from scipy.special import factorial
 
 
 def gamma_hrf(duration, A=1., tau=1.08, n=3, delta=2.05, Fs=1.0):
@@ -37,7 +38,7 @@ def gamma_hrf(duration, A=1., tau=1.08, n=3, delta=2.05, Fs=1.0):
 
     Notes
     -----
-    This is based on equation 3 in [Boynton1996]_:
+    This is based on equation 3 in Boynton (1996):
 
     .. math::
 
@@ -46,21 +47,19 @@ def gamma_hrf(duration, A=1., tau=1.08, n=3, delta=2.05, Fs=1.0):
         e^{-(\frac{t-\delta}{\tau})}}{\tau(n-1)!}
 
 
-    .. [Boynton1996] Geoffrey M. Boynton, Stephen A. Engel, Gary H. Glover and
-       David J. Heeger (1996). Linear Systems Analysis of Functional Magnetic
-       Resonance Imaging in Human V1. J Neurosci 16: 4207-4221
+    Geoffrey M. Boynton, Stephen A. Engel, Gary H. Glover and David J. Heeger
+    (1996). Linear Systems Analysis of Functional Magnetic Resonance Imaging in
+    Human V1. J Neurosci 16: 4207-4221
 
     """
     # XXX Maybe change to take out the time (Fs, duration, etc) from this and
     # instead implement this in units of sampling interval (pushing the time
     # aspect to the higher level)?
     if type(n) is not int:
-        print ('gamma_hrf received unusual input, converting n from %s to %i'
-               % (str(n), int(n)))
+        print(('gamma_hrf received unusual input, converting n from %s to %i'
+               % (str(n), int(n))))
 
         n = int(n)
-
-    sampling_interval = 1 / float(Fs)
 
     #Prevent negative delta values:
     if delta < 0:
@@ -84,17 +83,16 @@ def gamma_hrf(duration, A=1., tau=1.08, n=3, delta=2.05, Fs=1.0):
 
 
 def polonsky_hrf(A, B, tau1, f1, tau2, f2, t_max, Fs=1.0):
-    r""" HRF based on [Polonsky2000]_
+    r""" HRF based on Polonsky (2000):
 
     .. math::
 
        H(t) = exp(\frac{-t}{\tau_1}) sin(2\cdot\pi f_1 \cdot t) -a\cdot
        exp(-\frac{t}{\tau_2})*sin(2\pi f_2 t)
 
-    .. [Polonsky2000] Alex Polonsky, Randolph Blake, Jochen Braun and David
-       J. Heeger. Neuronal activity in human primary visual cortex correlates
-       with perception during binocular rivalry. Nature Neuroscience 3:
-       1153-1159
+    Alex Polonsky, Randolph Blake, Jochen Braun and David J. Heeger
+    (2000). Neuronal activity in human primary visual cortex correlates with
+    perception during binocular rivalry. Nature Neuroscience 3: 1153-1159
 
     """
     sampling_interval = 1 / float(Fs)

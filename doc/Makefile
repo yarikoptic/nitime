@@ -23,26 +23,27 @@ help:
 	      		"items (ChangeLog)"
 	@echo "  linkcheck check all external links for integrity"
 	@echo "  doctest   run all doctests embedded in the documentation"
-	@echo "  sf_fer_perez copy html files to sourceforge (fer_perez only)"
-	@echo "  sf_arokem copy html files to sourceforge (arokem only)"
+	@echo "  upload 	Upload the docs to github pages website"
 
 clean:
 	-rm -rf _build/* *~ api/generated
-	-rm -rf build/* 
+	-rm -rf build/*
 	-rm examples/fig/*
+	-rm examples/*.rst
+
 htmlonly:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) _build/html
 	@echo
 	@echo "Build finished. The HTML pages are in _build/html."
 
-api:    
+api:
 	python ../tools/build_modref_templates.py
 	@echo "Build API docs finished."
 
-html: rstexamples api htmlonly 
+html: rstexamples api htmlonly
 	@echo "Build HTML and API finished."
 
-html-no-exec: rstexamples-no-exec api htmlonly 
+html-no-exec: rstexamples-no-exec api htmlonly
 	@echo "Build HTML and API finished."
 
 latex: api
@@ -79,31 +80,6 @@ rstexamples:
 rstexamples-no-exec:
 	../tools/make_examples.py --no-exec
 
-# Sourceforge doesn't appear to have a way of copying the files
-# without specifying a username.  So we'll probably have one target
-# for each project admin
-#
-# Note: If several developers alternate commits, we may get permission errors
-# from rsync with the upload targets. If that happens, use the *_full targets
-# below which first wipe out the whole dir on SF and then re-upload.
 
-sf_fer_perez:
-	@echo "Copying html files to sourceforge..."
-	rsync -avH --delete -e ssh _build/html/ fer_perez,nipy@web.sourceforge.net:htdocs/nitime
-
-sf_arokem:
-	@echo "Copying html files to sourceforge..."
-	rsync -avH --delete -e ssh _build/html/ arokem,nipy@web.sourceforge.net:htdocs/nitime
-
-# Targets that force a clean and re-upload
-sf_fer_perez_clean:
-	@echo "Cleaning up sourceforge site"
-	ssh fer_perez,nipy@shell.sf.net "rm -rf /home/groups/n/ni/nipy/htdocs/nitime/*"
-
-sf_fer_perez_full: sf_fer_perez_clean sf_fer_perez
-
-sf_arokem_clean:
-	@echo "Cleaning up sourceforge site"
-	ssh arokem,nipy@shell.sf.net "rm -rf /home/groups/n/ni/nipy/htdocs/nitime/*"
-
-sf_arokem_full: sf_arokem_clean sf_arokem
+upload: html
+	./upload-gh-pages.sh _build/html/ nitime nipy

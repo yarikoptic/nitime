@@ -1,9 +1,12 @@
 import numpy as np
-import scipy.stats as stats
+from nitime.lazy import scipy_stats as stats
 
 from nitime import descriptors as desc
 from nitime import algorithms as tsa
 from nitime import timeseries as ts
+
+from nitime.index_utils import tril_indices_from
+
 
 from .base import BaseAnalyzer
 
@@ -36,14 +39,14 @@ def signal_noise(response):
 class SNRAnalyzer(BaseAnalyzer):
     """
     Calculate SNR for a response to repetitions of the same stimulus, according
-    to [Borst1999]_ (Figure 2) and [Hsu2004]_.
+    to (Borst, 1999) (Figure 2) and (Hsu, 2004).
 
-    .. [Hsu2004] Hsu A, Borst A and Theunissen, FE (2004) Quantifying
-    variability in neural responses ans its application for the validation of
-    model predictions. Network: Comput Neural Syst 15:91-109
+    Hsu A, Borst A and Theunissen, FE (2004) Quantifying variability in neural
+    responses ans its application for the validation of model
+    predictions. Network: Comput Neural Syst 15:91-109
 
-    .. [Borst1999] Borst A and Theunissen FE (1999) Information theory and
-    neural coding. Nat Neurosci 2:947-957
+    Borst A and Theunissen FE (1999) Information theory and neural coding. Nat
+    Neurosci 2:947-957
     """
     def __init__(self, input=None, bandwidth=None, adaptive=False,
                  low_bias=False):
@@ -64,15 +67,18 @@ class SNRAnalyzer(BaseAnalyzer):
 
         adaptive: bool, default to False
             Whether to set the weights for the tapered spectra according to the
-            adaptive algorithm [Thompson2007]_.
+            adaptive algorithm (Thompson, 2007).
 
         low_bias : bool, default to False
             Rather than use 2NW tapers, only use the tapers that have better
             than 90% spectral concentration within the bandwidth (still using a
             maximum of 2NW tapers)
 
-            .. [Thompson2007] Thompson, DJ Jackknifing multitaper spectrum
-            estimates. IEEE Signal Processing Magazing. 24: 20-30
+        Notes
+        -----
+
+        Thompson, DJ (2007) Jackknifing multitaper spectrum estimates. IEEE
+        Signal Processing Magazing. 24: 20-30
 
         """
         self.input = input
@@ -84,7 +90,7 @@ class SNRAnalyzer(BaseAnalyzer):
     @desc.setattr_on_read
     def mt_frequencies(self):
         return np.linspace(0, self.input.sampling_rate / 2,
-                           self.input.data.shape[-1] / 2 + 1)
+                           self.input.data.shape[-1] // 2 + 1)
 
     @desc.setattr_on_read
     def mt_signal_psd(self):
@@ -98,9 +104,9 @@ class SNRAnalyzer(BaseAnalyzer):
     @desc.setattr_on_read
     def mt_noise_psd(self):
         p = np.empty((self.noise.data.shape[0],
-                     self.noise.data.shape[-1] / 2 + 1))
+                     self.noise.data.shape[-1] // 2 + 1))
 
-        for i in xrange(p.shape[0]):
+        for i in range(p.shape[0]):
             _, p[i], _ = tsa.multi_taper_psd(self.noise.data[i],
                                     Fs=self.input.sampling_rate,
                                     BW=self.bandwidth,
@@ -137,6 +143,6 @@ class SNRAnalyzer(BaseAnalyzer):
         """
 
         c = np.corrcoef(self.input.data)
-        c = c[np.tril_indices_from(c, -1)]
+        c = c[tril_indices_from(c, -1)]
 
         return np.mean(c), stats.sem(c)

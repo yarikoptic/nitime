@@ -2,9 +2,9 @@ import os
 
 import numpy as np
 import numpy.testing as npt
-import numpy.testing.decorators as dec
 
 from scipy.signal import signaltools
+from scipy import fftpack
 
 import nitime
 from nitime import algorithms as tsa
@@ -70,17 +70,15 @@ def test_periodogram():
     arsig, _, _ = ut.ar_generator(N=512)
     avg_pwr = (arsig * arsig.conjugate()).mean()
     f, psd = tsa.periodogram(arsig, N=2048)
-    # for efficiency, let's leave out the 2PI in the numerator and denominator
-    # for the following integral
-    dw = 1. / 2048
-    avg_pwr_est = np.trapz(psd, dx=dw)
+    df = 2. * np.pi / 2048
+    avg_pwr_est = np.trapz(psd, dx=df)
     npt.assert_almost_equal(avg_pwr, avg_pwr_est, decimal=1)
 
 
 def permutation_system(N):
     p = np.zeros((N, N))
-    targets = range(N)
-    for i in xrange(N):
+    targets = list(range(N))
+    for i in range(N):
         popper = np.random.randint(0, high=len(targets))
         j = targets.pop(popper)
         p[i, j] = 1
@@ -117,12 +115,12 @@ def test_get_spectra():
     f_periodogram = tsa.get_spectra(x, method={'this_method': 'periodogram_csd'})
     f_multi_taper = tsa.get_spectra(x, method={'this_method': 'multi_taper_csd'})
 
-    npt.assert_equal(f_welch[0].shape, (NFFT / 2 + 1,))
-    npt.assert_equal(f_periodogram[0].shape, (N / 2 + 1,))
-    npt.assert_equal(f_multi_taper[0].shape, (N / 2 + 1,))
+    npt.assert_equal(f_welch[0].shape, (NFFT // 2 + 1,))
+    npt.assert_equal(f_periodogram[0].shape, (N // 2 + 1,))
+    npt.assert_equal(f_multi_taper[0].shape, (N // 2 + 1,))
 
     #Test for multi-channel data
-    x = np.reshape(x, (2, x.shape[-1] / 2))
+    x = np.reshape(x, (2, x.shape[-1] // 2))
     N = x.shape[-1]
 
     #Make sure you get back the expected shape for different spectra:
@@ -156,13 +154,13 @@ def test_psd_matlab():
     fxx, f = mlab.psd(ts0, NFFT=NFFT, Fs=Fs, noverlap=noverlap,
                       scale_by_freq=True)
 
-    fxx_mlab = np.fft.fftshift(fxx).squeeze()
+    fxx_mlab = fftpack.fftshift(fxx).squeeze()
 
     fxx_matlab = np.loadtxt(os.path.join(test_dir_path, 'fxx_matlab.txt'))
 
     npt.assert_almost_equal(fxx_mlab, fxx_matlab, decimal=5)
 
-@dec.slow
+
 def test_long_dpss_win():
     """ Test that very long dpss windows can be generated (using interpolation)"""
 

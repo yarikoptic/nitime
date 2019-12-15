@@ -1,9 +1,10 @@
+
 """
 
 .. _mar:
 
 =====================================
-Mulitvariate auto-regressive modeling
+Multivariate auto-regressive modeling
 =====================================
 
 Multivariate auto-regressive modeling uses a simple
@@ -45,8 +46,11 @@ We will generate an AR(2) model, with the following coefficients (taken from
 
 .. math::
 
-   x_t &= 0.9x_{t-1} - 0.5 x_{t-2} + \epsilon_t\\
-   y_t &= 0.8y_{t-1} - 0.5 y_{t-2} + 0.16 x_{t-1} - 0.2 x_{t-2} + \eta_t
+   x_t = 0.9x_{t-1} - 0.5 x_{t-2} + \epsilon_t
+
+.. math::
+
+   y_t = 0.8y_{t-1} - 0.5 y_{t-2} + 0.16 x_{t-1} - 0.2 x_{t-2} + \eta_t
 
 Or more succinctly, if we define:
 
@@ -129,7 +133,6 @@ Sw_true = alg.spectral_matrix_xy(Hw, cov)
 
 Next, we will generate 500 example sets of 100 points of these processes, to analyze:
 
-
 """
 
 #Number of realizations of the process
@@ -145,7 +148,7 @@ n_process = am.shape[-1]
 z = np.empty((N, n_process, L))
 nz = np.empty((N, n_process, L))
 
-for i in xrange(N):
+for i in range(N):
     z[i], nz[i] = utils.generate_mar(am, cov, L)
 
 """
@@ -157,10 +160,19 @@ Each $R^{xx}(k)$ has the shape (2,2), where:
 
 .. math::
 
-   R^{xx}_{00}(k) &= E( Z_0(t)Z_0^*(t-k) ) \\
-   R^{xx}_{01}(k) &= E( Z_0(t)Z_1^*(t-k) ) \\
-   R^{xx}_{10}(k) &= E( Z_1(t)Z_0^*(t-k) ) \\
-   R^{xx}_{11}(k) &= E( Z_1(t)Z_1^*(t-k) )
+   R^{xx}_{00}(k) = E( Z_0(t)Z_0^*(t-k) )
+
+.. math::
+
+   R^{xx}_{01}(k) = E( Z_0(t)Z_1^*(t-k) )
+
+.. math::
+
+   R^{xx}_{10}(k) = E( Z_1(t)Z_0^*(t-k) )
+
+.. math::
+
+   R^{xx}_{11}(k) = E( Z_1(t)Z_1^*(t-k) )
 
 
 Where $E$ is the expected value and $^*$ marks the conjugate transpose. Thus, only $R^{xx}(0)$ is symmetric.
@@ -174,7 +186,7 @@ order to choose an appropriate order, given the data.
 
 Rxx = np.empty((N, n_process, n_process, n_lags))
 
-for i in xrange(N):
+for i in range(N):
     Rxx[i] = utils.autocov_vector(z[i], nlags=n_lags)
 
 Rxx = Rxx.mean(axis=0)
@@ -205,9 +217,6 @@ w, f_x2y, f_y2x, f_xy, Sw = alg.granger_causality_xy(a,
                                                      ecov,
                                                      n_freqs=n_freqs)
 
-f = plt.figure()
-c_x = np.empty((L, w.shape[0]))
-c_y = np.empty((L, w.shape[0]))
 
 """
 
@@ -220,50 +229,42 @@ the known coefficients that generated the data:
 """
 
 fig01 = plt.figure()
-ax01 = fig01.add_subplot(1,1,1)
+ax01 = fig01.add_subplot(1, 1, 1)
 
 # This is the estimate:
-Sxx_est = np.abs(Sw[0,0])
-Syy_est = np.abs(Sw[1,1])
+Sxx_est = np.abs(Sw[0, 0])
+Syy_est = np.abs(Sw[1, 1])
 
 # This is the 'true' value, corrected for one-sided spectral density functions
-Sxx_true = Sw_true[0,0].real
-Syy_true = Sw_true[1,1].real
+Sxx_true = Sw_true[0, 0].real
+Syy_true = Sw_true[1, 1].real
 
 """
 
-The other is an estimate based on a multi-taper spectral estimate from the
+The other is an estimate based on a multitaper spectral estimate from the
 empirical signals:
 
 """
 
-for i in xrange(N):
+c_x = np.empty((L, w.shape[0]))
+c_y = np.empty((L, w.shape[0]))
+
+for i in range(N):
     frex, c_x[i], nu = alg.multi_taper_psd(z[i][0])
     frex, c_y[i], nu = alg.multi_taper_psd(z[i][1])
 
-# power plot
-ax = f.add_subplot(321)
-# correct for one-sided spectral density functions
-Sxx_true = Sw_true[0, 0].real
-Syy_true = Sw_true[1, 1].real
-Sxx_est = np.abs(Sw[0, 0])
-Syy_est = np.abs(Sw[1, 1])
+"""
 
-#ax.plot(w, Sxx_true, 'b', label='true Sxx(w)')
-ax.plot(w, Sxx_est, 'b--', label='estimated Sxx(w)')
-#ax.plot(w, Syy_true, 'g', label='true Syy(w)')
-ax.plot(w, Syy_est, 'g--', label='estimated Syy(w)')
+We plot these on the same axes, for a direct comparison:
 
-#scaler = np.mean(Sxx_est/np.mean(c_x,0))
-ax.plot(w, np.mean(c_x, 0), 'r', label='Sxx(w) - MT PSD')
-ax.plot(w, np.mean(c_y, 0), 'r--', label='Syy(w) - MT PSD')
+"""
 
 ax01.plot(w, Sxx_true, 'b', label='true Sxx(w)')
 ax01.plot(w, Sxx_est, 'b--', label='estimated Sxx(w)')
 ax01.plot(w, Syy_true, 'g', label='true Syy(w)')
 ax01.plot(w, Syy_est, 'g--', label='estimated Syy(w)')
-ax01.plot(w,np.mean(c_x,0),'r',label='Sxx(w) - MT PSD')
-ax01.plot(w,np.mean(c_y,0),'r--',label='Syy(w) - MT PSD')
+ax01.plot(w, np.mean(c_x, 0), 'r', label='Sxx(w) - MT PSD')
+ax01.plot(w, np.mean(c_y, 0), 'r--', label='Syy(w) - MT PSD')
 
 ax01.legend()
 
@@ -271,55 +272,20 @@ ax01.legend()
 
 .. image:: fig/ar_est_2vars_01.png
 
-
-"""
-
-f_id = alg.interdependence_xy(Sw)
-ax.plot(w, f_id)
-ax.set_title('interdependence')
-#ax.set_ylim([0, 2.2])
-
-# x causes y plot
-ax = f.add_subplot(323)
-ax.plot(w, f_x2y)
-ax.set_title('g. causality X on Y')
-ax.set_ylim([0, 0.1])
-
-# y causes x plot
-ax = f.add_subplot(324)
-ax.plot(w, f_y2x)
-ax.set_title('g. causality Y on X')
-ax.set_ylim([0, 0.01])
-
-
-"""
-
-Next, we plot the granger causalities. There are three GCs. One for each
+Next, we plot the Granger causalities. There are three GCs. One for each
 direction of causality between the two processes (X => Y and Y => X). In
-addition, there is the instanteaneous causality between the processes:
+addition, there is the instantaneous causality between the processes:
 
 """
 
 fig02 = plt.figure()
-ax02 = fig02.add_subplot(1,1,1)
+ax02 = fig02.add_subplot(1, 1, 1)
 
 # x causes y plot
-ax02.plot(w, f_x2y,label='X => Y')
+ax02.plot(w, f_x2y, label='X => Y')
 # y causes x plot
-ax02.plot(w, f_y2x,label='Y => X')
+ax02.plot(w, f_y2x, label='Y => X')
 # instantaneous causality
-
-ax = f.add_subplot(325)
-ax.plot(w, f_xy)
-ax.set_title('instantaneous causality')
-ax.set_ylim([0, 2.2])
-
-# total causality
-ax = f.add_subplot(326)
-ax.plot(w, f_xy + f_x2y + f_y2x)
-ax.set_title('total causality')
-ax.set_ylim([0, 2.2])
-
 ax02.plot(w, f_xy, label='X:Y')
 
 ax02.legend()
@@ -342,22 +308,22 @@ processes. We also compare to the empirically calculated coherence:
 """
 
 fig03 = plt.figure()
-ax03 = fig03.add_subplot(1,1,1)
+ax03 = fig03.add_subplot(1, 1, 1)
 
 # total causality
-ax03.plot(w, f_xy + f_x2y + f_y2x,label='Total causality')
+ax03.plot(w, f_xy + f_x2y + f_y2x, label='Total causality')
 
 #Interdepence:
 f_id = alg.interdependence_xy(Sw)
-ax03.plot(w, f_id,label='Interdependence')
+ax03.plot(w, f_id, label='Interdependence')
 
-coh = np.empty((N,33))
+coh = np.empty((N, 33))
 
-for i in xrange(N):
-    frex,this_coh = alg.coherence(z[i])
-    coh[i] = this_coh[0,1]
+for i in range(N):
+    frex, this_coh = alg.coherence(z[i])
+    coh[i] = this_coh[0, 1]
 
-ax03.plot(frex,np.mean(coh,0),label='Coherence')
+ax03.plot(frex, np.mean(coh, axis=0), label='Coherence')
 
 ax03.legend()
 
@@ -374,10 +340,7 @@ plt.show()
 
 """
 
-
-
-
-.. [Ding2008] M. Ding, Y. Chen and S.L. Bressler (2006) Granger causality:
+.. [Ding2006] M. Ding, Y. Chen and S.L. Bressler (2006) Granger causality:
    basic theory and application to neuroscience. In Handbook of Time Series
    Analysis, ed. B. Schelter, M. Winterhalder, and J. Timmer, Wiley-VCH
    Verlage, 2006: 451-474
@@ -385,6 +348,5 @@ plt.show()
 .. [Morf1978] M. Morf, A. Vieira and T. Kailath (1978) Covariance
    Characterization by Partial Autocorrelation Matrices. The Annals of Statistics,
    6: 643-648
-
 
 """

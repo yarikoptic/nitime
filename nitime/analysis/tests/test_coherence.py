@@ -1,10 +1,32 @@
+import warnings
+
 import numpy as np
 import numpy.testing as npt
+import matplotlib
 import matplotlib.mlab as mlab
+import pytest
 
 import nitime.timeseries as ts
 import nitime.analysis as nta
 
+import platform
+
+# Some tests might require python version 2.5 or above:
+if float(platform.python_version()[:3]) < 2.5:
+    old_python = True
+else:
+    old_python = False
+
+# Matplotlib older than 0.99 will have some issues with the normalization of t
+
+if float(matplotlib.__version__[:3]) < 0.99:
+    w_s = "You have a relatively old version of Matplotlib. "
+    w_s += " Estimation of the PSD DC component might not be as expected"
+    w_s += " Consider updating Matplotlib: http://matplotlib.sourceforge.net/"
+    warnings.warn(w_s, Warning)
+    old_mpl = True
+else:
+    old_mpl = False
 
 def test_CoherenceAnalyzer():
     methods = (None,
@@ -26,11 +48,11 @@ def test_CoherenceAnalyzer():
             if method is None:
                 # This is the default behavior (grab the NFFT from the number
                 # of frequencies):
-                npt.assert_equal(C.coherence.shape,(n_series, n_series,
-                                                    C.frequencies.shape[0]))
-                
-            elif (method['this_method']=='welch' or
-                  method['this_method']=='periodogram_csd'):
+                npt.assert_equal(C.coherence.shape, (n_series, n_series,
+                                                     C.frequencies.shape[0]))
+
+            elif (method['this_method'] == 'welch' or
+                  method['this_method'] == 'periodogram_csd'):
                 npt.assert_equal(C.coherence.shape, (n_series, n_series,
                                                      method['NFFT'] // 2 + 1))
             else:
@@ -46,14 +68,16 @@ def test_CoherenceAnalyzer():
             # The very first one is a nan, test from second and onwards:
             npt.assert_almost_equal(C.delay[0, 1][1:], -1 * C.delay[1, 0][1:])
 
-            if method is not None and method['this_method']=='welch':
-                S = nta.SpectralAnalyzer(T , method)
+            if method is not None and method['this_method'] == 'welch':
+                S = nta.SpectralAnalyzer(T, method)
                 npt.assert_almost_equal(S.cpsd[0], C.frequencies)
                 npt.assert_almost_equal(S.cpsd[1], C.spectrum)
             # Test that partial coherence runs through and has the right number
             # of dimensions:
             npt.assert_equal(len(C.coherence_partial.shape), 4)
 
+
+@pytest.mark.skipif(old_mpl, reason="Old MPL")
 def test_SparseCoherenceAnalyzer():
     Fs = np.pi
     t = np.arange(256)
@@ -64,8 +88,10 @@ def test_SparseCoherenceAnalyzer():
     C2 = nta.CoherenceAnalyzer(T)
 
     # Coherence symmetry:
-    npt.assert_equal(np.abs(C1.coherence[0, 1]), np.abs(C1.coherence[1, 0]))
-    npt.assert_equal(np.abs(C1.coherency[0, 1]), np.abs(C1.coherency[1, 0]))
+    npt.assert_almost_equal(np.abs(C1.coherence[0, 1]),
+                            np.abs(C1.coherence[1, 0]))
+    npt.assert_almost_equal(np.abs(C1.coherency[0, 1]),
+                            np.abs(C1.coherency[1, 0]))
 
     # Make sure you get the same answers as you would from the standard
     # CoherenceAnalyzer:
@@ -85,8 +111,8 @@ def test_SparseCoherenceAnalyzer():
     npt.assert_almost_equal(C2.delay[0, 1], C1.delay[0, 1])
     # Make sure that you would get an error if you provided a method other than
     # 'welch':
-    npt.assert_raises(ValueError, nta.SparseCoherenceAnalyzer, T,
-                                                    method=dict(this_method='foo'))
+    with pytest.raises(ValueError) as e_info:
+        nta.SparseCoherenceAnalyzer(T, method=dict(this_method='foo'))
 
 
 def test_MTCoherenceAnalyzer():
@@ -107,6 +133,30 @@ def test_MTCoherenceAnalyzer():
                                                        NFFT))
 
 
+@pytest.mark.skipif(old_python, reason="Old Python")
+def test_warn_short_tseries():
+    """
+
+    A warning is provided when the time-series is shorter than
+    the NFFT + n_overlap.
+
+    The implementation of this test is based on this:
+    http://docs.python.org/library/warnings.html#testing-warnings
+
+    """
+
+    with warnings.catch_warnings(record=True) as w:
+        # Cause all warnings to always be triggered.
+        warnings.simplefilter("always")
+        # Trigger a warning.
+        # The following should throw a warning, because 70 is smaller than the
+        # default NFFT=64 + n_overlap=32:
+        nta.CoherenceAnalyzer(ts.TimeSeries(np.random.rand(2, 70),
+                                            sampling_rate=1))
+        # Verify some things
+        npt.assert_equal(len(w), 1)
+
+
 def test_SeedCoherenceAnalyzer():
     """ Test the SeedCoherenceAnalyzer """
     methods = (None,
@@ -124,7 +174,7 @@ def test_SeedCoherenceAnalyzer():
     T_seed2 = ts.TimeSeries(np.vstack([seed1, seed2]), sampling_rate=Fs)
     T_target = ts.TimeSeries(np.vstack([seed1, target]), sampling_rate=Fs)
     for this_method in methods:
-        if this_method is None or this_method['this_method']=='welch':
+        if this_method is None or this_method['this_method'] == 'welch':
             C1 = nta.CoherenceAnalyzer(T, method=this_method)
             C2 = nta.SeedCoherenceAnalyzer(T_seed1, T_target,
                                            method=this_method)
@@ -137,5 +187,25 @@ def test_SeedCoherenceAnalyzer():
             npt.assert_almost_equal(C1.delay[0, 1], C2.delay[1])
 
         else:
-            npt.assert_raises(ValueError,nta.SeedCoherenceAnalyzer, T_seed1,
-                              T_target, this_method)
+            with pytest.raises(ValueError) as e_info:
+                nta.SeedCoherenceAnalyzer(T_seed1, T_target, this_method)
+
+
+def test_SeedCoherenceAnalyzer_same_Fs():
+    """
+
+    Providing two time-series with different sampling rates throws an error
+
+    """
+
+    Fs1 = np.pi
+    Fs2 = 2 * np.pi
+    t = np.arange(256)
+
+    T1 = ts.TimeSeries(np.random.rand(t.shape[-1]),
+                       sampling_rate=Fs1)
+
+    T2 = ts.TimeSeries(np.random.rand(t.shape[-1]),
+                       sampling_rate=Fs2)
+    with pytest.raises(ValueError) as e_info:
+        nta.SeedCoherenceAnalyzer(T1, T2)

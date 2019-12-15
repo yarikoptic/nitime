@@ -1,13 +1,11 @@
 """nitime version/release information"""
 
-ISRELEASED = False
-
 # Format expected by setup.py and doc/source/conf.py: string of form "X.Y.Z"
 _version_major = 0
-_version_minor = 3
-_version_micro = ''  # use '' for first of series, number for 1 and above
-_version_extra = 'dev'
-#_version_extra = ''  # Uncomment this for full releases
+_version_minor = 8
+_version_micro = 1  # use '' for first of series, number for 1 and above
+# _version_extra = 'dev'
+_version_extra = ''  # Uncomment this for full releases
 
 # Construct full version string from these.
 _ver = [_version_major, _version_minor]
@@ -36,26 +34,21 @@ long_description = """
  Nitime: timeseries analysis for neuroscience data
 ===================================================
 
-Nitime contains a core of numerical algorithms for time-series analysis both in
-the time and spectral domains, a set of container objects to represent
-time-series, and auxiliary objects that expose a high level interface to the
-numerical machinery and make common analysis tasks easy to express with compact
-and semantically clear code.
+Nitime is library of tools and algorithms for the analysis of time-series data
+from neuroscience experiments. It contains a implementation of numerical
+algorithms for time-series analysis both in the time and spectral domains, a
+set of container objects to represent time-series, and auxiliary objects that
+expose a high level interface to the numerical machinery and make common
+analysis tasks easy to express with compact and semantically clear code.
 
-Website
-=======
+Website and mailing list
+========================
 
-Current information can always be found at the NIPY website is located
-here::
+Current information can always be found at the nitime `website`_. Questions and
+comments can be directed to the mailing `list`_.
 
-    http://nipy.org/nitime
-
-Mailing Lists
-=============
-
-Please see the developer's list here::
-
-    http://mail.scipy.org/mailman/listinfo/nipy-devel
+.. _website: http://nipy.org/nitime
+.. _list: http://mail.scipy.org/mailman/listinfo/nipy-devel
 
 Code
 ====
@@ -82,7 +75,7 @@ for usage, and a DISCLAIMER OF ALL WARRANTIES.
 
 All trademarks referenced herein are property of their respective holders.
 
-Copyright (c) 2006-2010, NIPY Developers
+Copyright (c) 2006-2016, NIPY Developers
 All rights reserved.
 """
 
@@ -101,15 +94,5 @@ MAJOR = _version_major
 MINOR = _version_minor
 MICRO = _version_micro
 VERSION = __version__
-PACKAGES = ['nitime',
-            'nitime.tests',
-            'nitime.fmri',
-            'nitime.fmri.tests',
-            'nitime.algorithms',
-            'nitime.algorithms.tests',
-            'nitime.analysis',
-            'nitime.analysis.tests',
-            ]
 PACKAGE_DATA = {"nitime": ["LICENSE", "tests/*.txt", "tests/*.npy",
-                                  "fmri/tests/*.nii.gz"]}
-REQUIRES = ["numpy", "matplotlib", "scipy"]
+                           "data/*.nii.gz", "data/*.txt", "data/*.csv"]}

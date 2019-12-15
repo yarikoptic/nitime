@@ -1,10 +1,15 @@
-import numpy as np
-import scipy.stats.distributions as dist
+import warnings
 
-import nitime.timeseries as ts
+import numpy as np
+from nitime.lazy import scipy_stats_distributions as dist
+from nitime.lazy import scipy_fftpack as fftpack
+
 from nitime import descriptors as desc
 from nitime import utils as tsu
 from nitime import algorithms as tsa
+
+# To support older versions of numpy that don't have tril_indices:
+from nitime.index_utils import tril_indices, triu_indices
 
 from .base import BaseAnalyzer
 
@@ -18,27 +23,28 @@ class CoherenceAnalyzer(BaseAnalyzer):
         Parameters
         ----------
 
-        input: TimeSeries object
+        input : TimeSeries object
            Containing the data to analyze.
 
-        method: dict, optional,
+        method : dict, optional,
             This is the method used for spectral analysis of the signal for the
             coherence caclulation. See :func:`algorithms.get_spectra`
             documentation for details.
 
-        unwrap_phases: bool, optional
+        unwrap_phases : bool, optional
            Whether to unwrap the phases. This should be True if you assume that
            the time-delay is the same for all the frequency bands. See
            _[Sun2005] for details. Default : False
 
         Examples
         --------
+        >>> import nitime.timeseries as ts
         >>> np.set_printoptions(precision=4)  # for doctesting
         >>> t1 = ts.TimeSeries(data = np.arange(0,1024,1).reshape(2,512),
         ...                                 sampling_rate=np.pi)
         >>> c1 = CoherenceAnalyzer(t1)
-        >>> c1.method['Fs']
-        3.14159265359 Hz
+        >>> c1.method['Fs'] # doctest: +ELLIPSIS
+        3.1415926535... Hz
         >>> c1.method['this_method']
         'welch'
         >>> c1.coherence[0,1]
@@ -57,8 +63,8 @@ class CoherenceAnalyzer(BaseAnalyzer):
         """
         BaseAnalyzer.__init__(self, input)
 
-        #Set the variables for spectral estimation (can also be entered by
-        #user):
+        # Set the variables for spectral estimation (can also be entered by
+        # user):
         if method is None:
             self.method = {'this_method': 'welch',
                            'Fs': self.input.sampling_rate}
@@ -71,6 +77,22 @@ class CoherenceAnalyzer(BaseAnalyzer):
 
         self._unwrap_phases = unwrap_phases
 
+        # The following only applies to the welch method:
+        if (self.method.get('this_method') == 'welch' or
+            self.method.get('this_method') is None):
+
+            # If the input is shorter than NFFT, all the coherences will be
+            # 1 per definition. Throw a warning about that:
+            self.method['NFFT'] = self.method.get('NFFT', tsa.default_nfft)
+            self.method['n_overlap'] = self.method.get('n_overlap',
+                                                       tsa.default_n_overlap)
+            if (self.input.shape[-1] <
+                            (self.method['NFFT'] + self.method['n_overlap'])):
+                e_s = "In nitime.analysis, the provided input time-series is"
+                e_s += " shorter than the requested NFFT + n_overlap. All "
+                e_s += "coherence values will be set to 1."
+                warnings.warn(e_s, RuntimeWarning)
+
     @desc.setattr_on_read
     def coherency(self):
         """The standard output for this kind of analyzer is the coherency """
@@ -82,13 +104,13 @@ class CoherenceAnalyzer(BaseAnalyzer):
                               tseries_length,
                               spectrum_length), dtype=complex)
 
-        for i in xrange(tseries_length):
-            for j in xrange(i, tseries_length):
+        for i in range(tseries_length):
+            for j in range(i, tseries_length):
                 coherency[i][j] = tsa.coherency_spec(self.spectrum[i][j],
                                                      self.spectrum[i][i],
                                                      self.spectrum[j][j])
 
-        idx = tsu.tril_indices(tseries_length, -1)
+        idx = tril_indices(tseries_length, -1)
         coherency[idx[0], idx[1], ...] = coherency[idx[1], idx[0], ...].conj()
 
         return coherency
@@ -97,7 +119,7 @@ class CoherenceAnalyzer(BaseAnalyzer):
     def spectrum(self):
         """
         The spectra of each of the channels and cross-spectra between
-        different channles  in the input TimeSeries object
+        different channels  in the input TimeSeries object
         """
         f, spectrum = tsa.get_spectra(self.input.data, method=self.method)
         return spectrum
@@ -129,13 +151,13 @@ class CoherenceAnalyzer(BaseAnalyzer):
                               tseries_length,
                               spectrum_length))
 
-        for i in xrange(tseries_length):
-            for j in xrange(i, tseries_length):
+        for i in range(tseries_length):
+            for j in range(i, tseries_length):
                 coherence[i][j] = tsa.coherence_spec(self.spectrum[i][j],
                                                      self.spectrum[i][i],
                                                      self.spectrum[j][j])
 
-        idx = tsu.tril_indices(tseries_length, -1)
+        idx = tril_indices(tseries_length, -1)
         coherence[idx[0], idx[1], ...] = coherence[idx[1], idx[0], ...].conj()
 
         return coherence
@@ -154,8 +176,8 @@ class CoherenceAnalyzer(BaseAnalyzer):
                             tseries_length,
                             spectrum_length))
 
-        for i in xrange(tseries_length):
-            for j in xrange(i, tseries_length):
+        for i in range(tseries_length):
+            for j in range(i, tseries_length):
                 phase[i][j] = np.angle(
                     self.spectrum[i][j])
 
@@ -168,8 +190,8 @@ class CoherenceAnalyzer(BaseAnalyzer):
         """ The delay in seconds between the two time series """
         p_shape = self.phase.shape[:-1]
         delay = np.zeros(self.phase.shape)
-        for i in xrange(p_shape[0]):
-            for j in xrange(p_shape[1]):
+        for i in range(p_shape[0]):
+            for j in range(p_shape[1]):
                 this_phase = self.phase[i, j]
                 #If requested, unwrap the phases:
                 if self._unwrap_phases:
@@ -192,9 +214,9 @@ class CoherenceAnalyzer(BaseAnalyzer):
                                 tseries_length,
                                 spectrum_length))
 
-        for i in xrange(tseries_length):
-            for j in xrange(tseries_length):
-                for k in xrange(tseries_length):
+        for i in range(tseries_length):
+            for j in range(tseries_length):
+                for k in range(tseries_length):
                     if j == k or i == k:
                         pass
                     else:
@@ -206,7 +228,7 @@ class CoherenceAnalyzer(BaseAnalyzer):
                             self.spectrum[j][k],
                             self.spectrum[k][k])
 
-        idx = tsu.tril_indices(tseries_length, -1)
+        idx = tril_indices(tseries_length, -1)
         p_coherence[idx[0], idx[1], ...] =\
                             p_coherence[idx[1], idx[0], ...].conj()
 
@@ -224,9 +246,9 @@ class MTCoherenceAnalyzer(BaseAnalyzer):
         Parameters
         ----------
 
-        input: TimeSeries object
+        input : TimeSeries object
 
-        bandwidth: float,
+        bandwidth : float,
            The bandwidth of the windowing function will determine the number
            tapers to use. This parameters represents trade-off between
            frequency resolution (lower main lobe bandwidth for the taper) and
@@ -234,17 +256,20 @@ class MTCoherenceAnalyzer(BaseAnalyzer):
            estimates). Per default will be set to 4 times the fundamental
            frequency, such that NW=4
 
-        alpha: float, default =0.05
+        alpha : float, default =0.05
             This is the alpha used to construct a confidence interval around
             the multi-taper csd estimate, based on a jack-knife estimate of the
             variance [Thompson2007]_.
 
-        adaptive: bool, default to True
+        adaptive : bool, default to True
             Whether to set the weights for the tapered spectra according to the
-            adaptive algorithm [Thompson2007]_.
+            adaptive algorithm (Thompson, 2007).
 
-            .. [Thompson2007] Thompson, DJ Jackknifing multitaper spectrum
-            estimates. IEEE Signal Processing Magazing. 24: 20-30
+        Notes
+        -----
+
+        Thompson, DJ (2007) Jackknifing multitaper spectrum estimates. IEEE
+        Signal Processing Magazing. 24: 20-30
 
         """
 
@@ -263,7 +288,7 @@ class MTCoherenceAnalyzer(BaseAnalyzer):
                 self.bandwidth = self.NW * (2 * Fs) / N
 
         self.alpha = alpha
-        self._L = self.input.data.shape[-1] / 2 + 1
+        self._L = self.input.data.shape[-1] // 2 + 1
         self._adaptive = adaptive
 
     @desc.setattr_on_read
@@ -278,13 +303,13 @@ class MTCoherenceAnalyzer(BaseAnalyzer):
 
     @desc.setattr_on_read
     def df(self):
-        #The degrees of freedom:
+        # The degrees of freedom:
         return 2 * self.NW - 1
 
     @desc.setattr_on_read
     def spectra(self):
         tdata = self.tapers[None, :, :] * self.input.data[:, None, :]
-        tspectra = np.fft.fft(tdata)
+        tspectra = fftpack.fft(tdata)
         return tspectra
 
     @desc.setattr_on_read
@@ -293,13 +318,13 @@ class MTCoherenceAnalyzer(BaseAnalyzer):
         w = np.empty((channel_n, self.df, self._L))
 
         if self._adaptive:
-            for i in xrange(channel_n):
+            for i in range(channel_n):
                 # this is always a one-sided spectrum?
                 w[i] = tsu.adaptive_weights(self.spectra[i],
                                             self.eigs,
                                             sides='onesided')[0]
 
-        #Set the weights to be the square root of the eigen-values:
+        # Set the weights to be the square root of the eigen-values:
         else:
             wshape = [1] * len(self.spectra.shape)
             wshape[0] = channel_n
@@ -317,8 +342,8 @@ class MTCoherenceAnalyzer(BaseAnalyzer):
         psd_mat = np.zeros((2, nrows, nrows, self._L), 'd')
         coh_mat = np.zeros((nrows, nrows, self._L), 'd')
 
-        for i in xrange(self.input.data.shape[0]):
-            for j in xrange(i):
+        for i in range(self.input.data.shape[0]):
+            for j in range(i):
                 sxy = tsa.mtm_cross_spectrum(self.spectra[i], self.spectra[j],
                                            (self.weights[i], self.weights[j]),
                                            sides='onesided')
@@ -333,7 +358,7 @@ class MTCoherenceAnalyzer(BaseAnalyzer):
                 coh_mat[i, j] = np.abs(sxy) ** 2
                 coh_mat[i, j] /= (sxx * syy)
 
-        idx = tsu.triu_indices(self.input.data.shape[0], 1)
+        idx = triu_indices(self.input.data.shape[0], 1)
         coh_mat[idx[0], idx[1], ...] = coh_mat[idx[1], idx[0], ...].conj()
 
         return coh_mat
@@ -344,8 +369,8 @@ class MTCoherenceAnalyzer(BaseAnalyzer):
         coh_var = np.zeros((self.input.data.shape[0],
                             self.input.data.shape[0],
                             self._L), 'd')
-        for i in xrange(self.input.data.shape[0]):
-            for j in xrange(i):
+        for i in range(self.input.data.shape[0]):
+            for j in range(i):
                 if i != j:
                     coh_var[i, j] = tsu.jackknifed_coh_variance(
                         self.spectra[i],
@@ -354,7 +379,7 @@ class MTCoherenceAnalyzer(BaseAnalyzer):
                         adaptive=self._adaptive
                         )
 
-        idx = tsu.triu_indices(self.input.data.shape[0], 1)
+        idx = triu_indices(self.input.data.shape[0], 1)
         coh_var[idx[0], idx[1], ...] = coh_var[idx[1], idx[0], ...].conj()
 
         coh_mat_xform = tsu.normalize_coherence(self.coherence,
@@ -393,14 +418,13 @@ class SparseCoherenceAnalyzer(BaseAnalyzer):
         Parameters
         ----------
 
-        time_series: a time-series object
+        time_series : a time-series object
 
-        ij: a list of tuples, each containing a pair of indices.
-
+        ij : a list of tuples, each containing a pair of indices.
            The resulting cache will contain the fft of time-series in the rows
            indexed by the unique elements of the union of i and j
 
-        lb,ub: float,optional, default: lb=0, ub=None (max frequency)
+        lb,ub : float,optional, default: lb=0, ub=None (max frequency)
 
             define a frequency band of interest
 
@@ -408,9 +432,9 @@ class SparseCoherenceAnalyzer(BaseAnalyzer):
 
             Does exactly what the name implies. If you have enough memory
 
-        method: optional, dict
-
-        The method for spectral estimation (see :func:`algorithms.get_spectra`)
+        method : optional, dict
+             The method for spectral estimation (see
+             :func:`algorithms.get_spectra`)
 
         """
 
@@ -512,7 +536,7 @@ class SparseCoherenceAnalyzer(BaseAnalyzer):
         return freqs[lb_idx:ub_idx]
 
 
-class SeedCoherenceAnalyzer(BaseAnalyzer):
+class SeedCoherenceAnalyzer(object):
     """
     This analyzer takes two time-series. The first is designated as a
     time-series of seeds. The other is designated as a time-series of targets.
@@ -553,10 +577,14 @@ class SeedCoherenceAnalyzer(BaseAnalyzer):
 
         """
 
-        BaseAnalyzer.__init__(self, seed_time_series)
-
         self.seed = seed_time_series
         self.target = target_time_series
+
+        # Check that the seed and the target have the same sampling rate:
+        if self.seed.sampling_rate != self.target.sampling_rate:
+            e_s = "The sampling rate for the seed time-series and the target"
+            e_s += " time-series need to be identical."
+            raise ValueError(e_s)
 
         #Set the variables for spectral estimation (can also be entered by
         #user):
@@ -568,7 +596,7 @@ class SeedCoherenceAnalyzer(BaseAnalyzer):
 
         if ('this_method' in self.method.keys() and
             self.method['this_method'] != 'welch'):
-            e_s = "For SparseCoherenceAnalyzer, "
+            e_s = "For SeedCoherenceAnalyzer, "
             e_s += "spectral estimation method must be welch"
             raise ValueError(e_s)
 
@@ -592,7 +620,8 @@ class SeedCoherenceAnalyzer(BaseAnalyzer):
         """Get the central frequencies for the frequency bands, given the
            method of estimating the spectrum """
 
-        self.method['Fs'] = self.method.get('Fs', self.input.sampling_rate)
+        # Get the sampling rate from the seed time-series:
+        self.method['Fs'] = self.method.get('Fs', self.seed.sampling_rate)
         NFFT = self.method.get('NFFT', 64)
         Fs = self.method.get('Fs')
         freqs = tsu.get_freqs(Fs, NFFT)
@@ -608,7 +637,7 @@ class SeedCoherenceAnalyzer(BaseAnalyzer):
         #target.
 
         #This is the kind of input that cache_fft expects:
-        ij = zip(np.arange(data.shape[0]), np.arange(data.shape[0]))
+        ij = list(zip(np.arange(data.shape[0]), np.arange(data.shape[0])))
 
         f, cache = tsa.cache_fft(data, ij, lb=self.lb, ub=self.ub,
                                  method=self.method,
@@ -638,7 +667,7 @@ class SeedCoherenceAnalyzer(BaseAnalyzer):
         #This is a list of indices into the cached fft window libraries,
         #setting the index of the seed to be -1, so that it is easily
         #distinguished from the target indices:
-        ij = zip(np.ones_like(target_chan_idx) * -1, target_chan_idx)
+        ij = list(zip(np.ones_like(target_chan_idx) * -1, target_chan_idx))
 
         #If there is more than one channel in the seed time-series:
         if len(self.seed.shape) > 1:

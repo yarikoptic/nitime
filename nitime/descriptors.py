@@ -62,7 +62,7 @@ class ResetMixin(object):
     ...
     ...     @auto_attr
     ...     def y(self):
-    ...         print '*** y computation executed ***'
+    ...         print('*** y computation executed ***')
     ...         return self.x / 2.0
     ...
 
@@ -124,7 +124,7 @@ class OneTimeProperty(object):
           the value of this computation.
         """
         self.getter = func
-        self.name = func.func_name
+        self.name = func.__name__
 
     def __get__(self, obj, type=None):
         """This will be called on attribute access on the class or instance."""
@@ -132,11 +132,11 @@ class OneTimeProperty(object):
         if obj is None:
             # Being called on the class, return the original function. This
             # way, introspection works on the class.
-            #return func
+            # return func
             return self.getter
 
-        #Errors in the following line are errors in setting a
-        #OneTimeProperty
+        # Errors in the following line are errors in setting a
+        # OneTimeProperty
         val = self.getter(obj)
 
         setattr(obj, self.name, val)

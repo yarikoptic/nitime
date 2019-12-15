@@ -1,7 +1,7 @@
 import numpy as np
 import numpy.testing as npt
 import nitime.timeseries as ts
-import nose.tools as nt
+import pytest
 
 
 
@@ -34,13 +34,14 @@ def test_get_time_unit():
 
 def test_TimeArray():
 
-    time1 = ts.TimeArray(range(100), time_unit='ms')
+    time1 = ts.TimeArray(list(range(100)), time_unit='ms')
     time2 = time1 + time1
     npt.assert_equal(time2.time_unit, 'ms')
     time1 = ts.TimeArray(10 ** 6)
     npt.assert_equal(time1.__repr__(), '1000000.0 s')
     #TimeArray can't be more than 1-d:
-    nt.assert_raises(ValueError, ts.Events, np.zeros((2, 2)))
+    with pytest.raises(ValueError) as e_info:
+        ts.TimeArray(np.zeros((2, 2)))
 
     dt = ts.TimeArray(0.001, time_unit='s')
     tt = ts.TimeArray([dt])
@@ -53,6 +54,59 @@ def test_TimeArray():
                        ts.TimeArray(3)])
     npt.assert_equal(t1, t2)
 
+
+def test_TimeArray_math():
+    "Addition and subtraction should convert to TimeArray units"
+    time1 = ts.TimeArray(list(range(10)), time_unit='ms')
+    time2 = ts.TimeArray(list(range(1,11)), time_unit='ms')
+    # units should be converted to whatever units the array has
+    time3 = time1 + 1
+    npt.assert_equal(time2,time3)
+    time4 = time2 - 1
+    npt.assert_equal(time1,time4)
+    # floats should also work
+    time3 = time1 + 1.0
+    npt.assert_equal(time2,time3)
+    time4 = time2 - 1.0
+    npt.assert_equal(time1,time4)
+
+    # test the r* versions
+    time3 = 1 + time1
+    npt.assert_equal(time2,time3)
+    time4 = 1 - time2
+    npt.assert_equal(-time1,time4)
+    # floats should also work
+    time3 = 1.0 + time1
+    npt.assert_equal(time2,time3)
+    time4 = 1.0 - time2
+    npt.assert_equal(-time1,time4)
+
+    timeunits = ts.TimeArray(list(range(10)), time_unit='s')
+    timeunits.convert_unit('ms')
+    # now, math with non-TimeArrays should be based on the new time_unit
+
+    # here the range() list gets converted to a TimeArray with the same units
+    # as timeunits (which is now 'ms')
+    tnew = timeunits + list(range(10))
+    npt.assert_equal(tnew, timeunits+time1) # recall that time1 was 0-10ms
+
+
+
+def test_TimeArray_comparison():
+    "Comparison with unitless quantities should convert to TimeArray units"
+    time = ts.TimeArray(list(range(10)), time_unit='ms')
+    npt.assert_equal(time < 5 , [True]*5+[False]*5)
+    npt.assert_equal(time > 5 , [False]*6+[True]*4)
+    npt.assert_equal(time <= 5, [True]*6+[False]*4)
+    npt.assert_equal(time >= 5, [False]*5+[True]*5)
+    npt.assert_equal(time == 5, [False]*5+[True] + [False]*4)
+    time.convert_unit('s')
+    # now all of time is < 1 in the new time_unit
+    npt.assert_equal(time < 5 , [True]*10)
+    npt.assert_equal(time > 5 , [False]*10)
+    npt.assert_equal(time <= 5, [True]*10)
+    npt.assert_equal(time >= 5, [False]*10)
+    npt.assert_equal(time == 5, [False]*10)
 
 def test_TimeArray_init_int64():
     """Make sure that we can initialize TimeArray with an array of ints"""
@@ -70,7 +124,7 @@ def test_TimeArray_init_list():
         tl = [t]
         ta = ts.TimeArray(t, time_unit='s')
         tla = ts.TimeArray(tl, time_unit='s')
-        nt.assert_equal(ta, tla)
+        npt.assert_(ta, tla)
 
 
 def test_TimeArray_repr():
@@ -103,10 +157,9 @@ def test_TimeArray_copyflag():
 
 def test_TimeArray_new():
     for unit in ['ns', 'ms', 's', None]:
-        for flag, assertion in [(True, nt.assert_not_equal),
-                (False, nt.assert_equal)]:
+        for flag in [True, False]:
             #list -doesn't make sense to set copy=True
-            time2 = ts.TimeArray(range(5), time_unit=unit, copy=True)
+            time2 = ts.TimeArray(list(range(5)), time_unit=unit, copy=True)
             #numpy array (float) - doesn't make sense to set copy=True
             time2f = ts.TimeArray(np.arange(5.), time_unit=unit, copy=True)
             #TimeArray
@@ -119,7 +172,10 @@ def test_TimeArray_new():
             npt.assert_equal(time2, time2f)
             npt.assert_equal(time2, time3)
             time3[0] += 100
-            assertion(time2[0], time3[0])
+            if flag:
+                npt.assert_(time2[0] != time3[0])
+            else:
+                npt.assert_(time2[0] == time3[0])
             npt.assert_equal(time2[1:], time3[1:])
             npt.assert_equal(time4, time5)
 
@@ -131,7 +187,7 @@ def test_TimeArray_bool():
     bool_arr = np.ones(time1.shape, dtype=bool)
     npt.assert_equal(time1, time2)
     npt.assert_equal(bool_arr, time1 == time2)
-    nt.assert_not_equal(type(time1 == time2), ts.TimeArray)
+    npt.assert_(type(time1 == time2) is not ts.TimeArray)
 
 
 def test_TimeArray_convert_unit():
@@ -184,8 +240,8 @@ def test_TimeArray_div():
 
 
 def test_TimeArray_index_at():
-    time1 = ts.TimeArray(range(10), time_unit='ms')
-    for i in xrange(5):
+    time1 = ts.TimeArray(list(range(10)), time_unit='ms')
+    for i in range(5):
         # The return value is always an array, so we keep it for multiple tests
         i_arr = np.array(i)
         # Check 'closest' indexing mode first
@@ -214,8 +270,8 @@ def test_TimeArray_index_at():
 
 
 def test_TimeArray_at():
-    time1 = ts.TimeArray(range(10), time_unit='ms')
-    for i in xrange(10):
+    time1 = ts.TimeArray(list(range(10)), time_unit='ms')
+    for i in range(10):
         this = time1.at(i)
         i_ms = ts.TimeArray(i / 1000.)
         npt.assert_equal(this, ts.TimeArray(i, time_unit='ms'))
@@ -234,7 +290,7 @@ def test_TimeArray_at():
 
 
 def test_TimeArray_at2():
-    time1 = ts.TimeArray(range(10), time_unit='ms')
+    time1 = ts.TimeArray(list(range(10)), time_unit='ms')
     for i in [1]:
         i_ms = ts.TimeArray(i / 1000.)
         this_secs = time1.at(i_ms, tol=1)
@@ -246,7 +302,7 @@ def test_TimeArray_at2():
 def test_UniformTime_index_at():
     time1 = ts.UniformTime(t0=1000, length=10, sampling_rate=1000, time_unit='ms')
     mask = [False] * 10
-    for i in xrange(10):
+    for i in range(10):
         idx = time1.index_at(ts.TimeArray(1000 + i, time_unit='ms'))
         npt.assert_equal(idx, np.array(i))
         mask[i] = True
@@ -274,7 +330,10 @@ def test_UniformTime_index_at():
 
 #Test the overloaded __getitem__ and __setitem:
 #
-#def test_TimeArray_getset():
+def test_TimeArray_getset():
+    t1 = ts.TimeSeries(data = np.random.rand(2, 3, 4), sampling_rate=1)
+    npt.assert_equal(t1[0],t1.data[...,0])
+
 
 
 
@@ -329,16 +388,16 @@ def test_UniformTime():
 
         #This should raise a value error, because the duration is shorter than
         #the sampling_interval:
-        npt.assert_raises(ValueError,
-                                ts.UniformTime,
-                                dict(sampling_interval=10, duration=1))
+        with pytest.raises(ValueError) as e_info:
+            ts.UniformTime(dict(sampling_interval=10, duration=1))
 
     #Time objects can be initialized with other time objects setting the
     #duration, sampling_interval and sampling_rate:
 
     a = ts.UniformTime(length=1, sampling_rate=1)
-    npt.assert_raises(ValueError, ts.UniformTime, dict(data=a,
-        sampling_rate=10, sampling_interval=.1))
+    with pytest.raises(ValueError) as e_info:
+        ts.UniformTime(dict(data=a, sampling_rate=10, sampling_interval=.1))
+
     b = ts.UniformTime(duration=2 * a.sampling_interval,
                        sampling_rate=2 * a.sampling_rate)
 
@@ -432,10 +491,10 @@ def test_TimeSeries():
     t1 = ts.UniformTime(length=8, sampling_rate=2)
     #duration is the same, but we're downsampling to 1Hz
     tseries1 = ts.TimeSeries(data=[1, 2, 3, 4], time=t1, sampling_rate=1)
-    #If you didn't explicitely provide the rate you want to downsample to, that
+    #If you didn't explicitly provide the rate you want to downsample to, that
     #is an error:
-    npt.assert_raises(ValueError, ts.TimeSeries, dict(data=[1, 2, 3, 4],
-                                                           time=t1))
+    with pytest.raises(ValueError) as e_info:
+        ts.TimeSeries(dict(data=[1, 2, 3, 4], time=t1))
 
     tseries2 = ts.TimeSeries(data=[1, 2, 3, 4], sampling_rate=1)
     tseries3 = ts.TimeSeries(data=[1, 2, 3, 4], sampling_rate=1000,
@@ -472,10 +531,10 @@ def test_TimeSeries():
 
     data = [1, 2, 3, 4]
     #If the data is not the right length, that should throw an error:
-    npt.assert_raises(ValueError,
-                          ts.TimeSeries, dict(data=data, time=t))
+    with pytest.raises(ValueError) as e_info:
+        ts.TimeSeries(dict(data=data, time=t))
 
-    # test basic arithmetics wiht TimeSeries
+    # test basic arithmetics with TimeSeries
     tseries1 = ts.TimeSeries([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], sampling_rate=1)
     tseries2 = tseries1 + 1
     npt.assert_equal(tseries1.data + 1, tseries2.data)
@@ -486,9 +545,23 @@ def test_TimeSeries():
     tseries2 = tseries1 * 2
     npt.assert_equal(tseries1.data * 2, tseries2.data)
     npt.assert_equal(tseries1.time, tseries2.time)
-    tseries2 /= 2
+    tseries2 = tseries2 / 2
     npt.assert_equal(tseries1.data, tseries2.data)
     npt.assert_equal(tseries1.time, tseries2.time)
+
+    tseries_nd1 = ts.TimeSeries(np.random.randn(3, 100), sampling_rate=1)
+    tseries_nd2 = ts.TimeSeries(np.random.randn(3, 100), sampling_rate=1)
+    npt.assert_equal((tseries_nd1 + tseries_nd2).data,
+                     tseries_nd1.data + tseries_nd2.data)
+
+    npt.assert_equal((tseries_nd1 - tseries_nd2).data,
+                     tseries_nd1.data - tseries_nd2.data)
+
+    npt.assert_equal((tseries_nd1 * tseries_nd2).data,
+                     tseries_nd1.data * tseries_nd2.data)
+
+    npt.assert_equal((tseries_nd1 / tseries_nd2).data,
+                     tseries_nd1.data / tseries_nd2.data)
 
 
 def test_TimeSeries_repr():
@@ -505,7 +578,7 @@ def test_TimeSeries_repr():
     >>> tseries1.sampling_rate
     3.0 Hz
     >>> tseries1.sampling_interval
-    0.33333333333300003 s
+    0.333333333333 s
     >>> a = ts.UniformTime(length=1,sampling_rate=2)
 
     >>> b = ts.TimeSeries(data=[1,2,3],sampling_interval=a.sampling_interval)
@@ -525,17 +598,17 @@ def test_TimeSeries_repr():
 
 
 def test_Epochs():
-    tms = ts.TimeArray(data=range(100), time_unit='ms')
-    tmin = ts.TimeArray(data=range(100), time_unit='m')
-    tsec = ts.TimeArray(data=range(100), time_unit='s')
+    tms = ts.TimeArray(data=list(range(100)), time_unit='ms')
+    tmin = ts.TimeArray(data=list(range(100)), time_unit='m')
+    tsec = ts.TimeArray(data=list(range(100)), time_unit='s')
 
     utms = ts.UniformTime(length=100, sampling_interval=1, time_unit='ms')
     utmin = ts.UniformTime(length=100, sampling_interval=1, time_unit='m')
     utsec = ts.UniformTime(length=100, sampling_interval=1, time_unit='s')
 
-    tsms = ts.TimeSeries(data=range(100), sampling_interval=1, time_unit='ms')
-    tsmin = ts.TimeSeries(data=range(100), sampling_interval=1, time_unit='m')
-    tssec = ts.TimeSeries(data=range(100), sampling_interval=1, time_unit='s')
+    tsms = ts.TimeSeries(data=list(range(100)), sampling_interval=1, time_unit='ms')
+    tsmin = ts.TimeSeries(data=list(range(100)), sampling_interval=1, time_unit='m')
+    tssec = ts.TimeSeries(data=list(range(100)), sampling_interval=1, time_unit='s')
 
     # one millisecond epoch
     e1ms = ts.Epochs(0, 1, time_unit='ms')
@@ -583,17 +656,18 @@ def test_Epochs():
         npt.assert_equal(t[e2][0], (0, 10))
         npt.assert_equal(t[e2][1], (1, 11))
         # check the data for each epoch
-        npt.assert_equal(t[e2].data[0], range(10))
-        npt.assert_equal(t[e2].data[1], range(10, 20))
+        npt.assert_equal(t[e2].data[0], list(range(10)))
+        npt.assert_equal(t[e2].data[1], list(range(10, 20)))
         npt.assert_equal(t[e2].duration, e2[0].duration)
 
         # slice with Epochs of different length (not supported for timeseries,
         # raise error, though future jagged array implementation could go here)
         ejag = ts.Epochs([0, 10], [10, 40], time_unit=t.time_unit)
         # next line is the same as t[ejag]
-        npt.assert_raises(ValueError, t.__getitem__, ejag)
+        with pytest.raises(ValueError) as e_info:
+            t.__getitem__(ejag)
 
-        # if an epoch lies entirely between samples in the timeseries, return
+        # if an epoch lies entirely between samples in the timeseries,
         # return an empty array
         eshort = ts.Epochs(2.5, 2.7, time_unit=t.time_unit)
         npt.assert_equal(len(t[eshort].data), 0)
@@ -601,19 +675,37 @@ def test_Epochs():
         e1ms_outofrange = ts.Epochs(200, 300, time_unit=t.time_unit)
         # assert that with the epoch moved outside of the time range of our
         # data, slicing with the epoch now yields an empty array
-        npt.assert_raises(ValueError, t.during, dict(e=e1ms_outofrange))
+        with pytest.raises(ValueError) as e_info:
+            t.during(dict(e=e1ms_outofrange))
 
         # the sample timeseries are all shorter than a day, so this should
         # raise an error (instead of padding, or returning a shorter than
         # expected array.
-        npt.assert_raises(ValueError, t.during, dict(e=e1d))
+        with pytest.raises(ValueError) as e_info:
+            t.during(dict(e=e1d))
 
+def test_basic_slicing():
+    t = ts.TimeArray(list(range(4)))
+
+    for x in range(3):
+        ep  = ts.Epochs(.5,x+.5)
+        npt.assert_equal(len(t[ep]), x)
+
+    # epoch starts before timeseries
+    npt.assert_equal(len(t[ts.Epochs(-1,3)]), len(t)-1)
+    # epoch ends after timeseries
+    npt.assert_equal(len(t[ts.Epochs(.5,5)]), len(t)-1)
+    # epoch starts before and ends after timeseries
+    npt.assert_equal(len(t[ts.Epochs(-1,100)]), len(t))
+    ep  = ts.Epochs(20,100)
+    npt.assert_equal(len(t[ep]), 0)
 
 
 def test_Events():
 
     # time has to be one-dimensional
-    nt.assert_raises(ValueError, ts.Events, np.zeros((2, 2)))
+    with pytest.raises(ValueError) as e_info:
+        ts.Events(np.zeros((2, 2)))
 
     t = ts.TimeArray([1, 2, 3], time_unit='ms')
     x = [1, 2, 3]
@@ -633,13 +725,12 @@ def test_Events():
                         indices=[i0, i1])
 
         # Note that the length of indices and labels has to be identical:
-        nt.assert_raises(ValueError, ts.Events, t, time_unit=unit,
-                                                       labels=['trial',
-                                                               'other'],
-                                                       indices=[i0])# Only
-                                                                    # one of
-                                                                    # the
-                                                                    # indices!
+        with pytest.raises(ValueError) as e_info:
+            ts.Events(t, time_unit=unit,
+                      labels=['trial', 'other'], indices=[i0])    # Only
+                                                                   # one of
+                                                                   # the
+                                                                   # indices!
 
         # make sure the time is retained
         npt.assert_equal(ev1.time, t)
@@ -677,13 +768,13 @@ def test_Events():
 
         # indexing w/ epoch
         ep = ts.Epochs(start=0, stop=1.5, time_unit='ms')
-        print ev1[ep]
         npt.assert_equal(ev1[ep].data['i'], x[0])
 
         # fancy indexing (w/ boolean mask)
         npt.assert_equal(ev1[ev3.index.trial == 0].data['j'], y[0:2])
 
-
+        # len() function is implemented and working
+        assert len(t) == len(ev1) == len(ev2) == len(ev3)
 
 def test_Events_scalar():
     t = ts.TimeArray(1, time_unit='ms')
@@ -716,3 +807,134 @@ def test_index_at_20101206():
     #no t0
     TS_A = ts.TimeSeries(A, sampling_interval=2)
     npt.assert_equal(TS_A.time.index_at(TS_A.time), np.arange(40))
+
+def test_masked_array_timeseries():
+    # make sure masked arrays passed in stay as masked arrays
+    masked = np.ma.masked_invalid([0,np.nan,2])
+    t = ts.TimeSeries(masked, sampling_interval=1)
+    npt.assert_equal(t.data.mask, [False, True, False])
+
+    # make sure regular arrays passed don't become masked
+    notmasked = np.array([0,np.nan,2])
+    t2 = ts.TimeSeries(notmasked, sampling_interval=1)
+    with pytest.raises(AttributeError) as e_info:
+        t2.data.__getattribute__('mask')
+
+def test_masked_array_events():
+    # make sure masked arrays passed in stay as masked arrays
+    masked = np.ma.masked_invalid([0,np.nan,2])
+    e = ts.Events([1,2,3], d=masked)
+    npt.assert_equal(e.data['d'].mask, [False, True, False])
+
+    # make sure regular arrays passed don't become masked
+    notmasked = np.array([0,np.nan,2])
+    e2 = ts.Events([1,2,3], d=notmasked)
+    with pytest.raises(AttributeError) as e_info:
+        e2.data['d'].__getattribute__('mask')
+
+def test_event_subclass_slicing():
+    "Subclassing Events should preserve the subclass after slicing"
+    class Events_with_X(ts.Events):
+        "A class which shows as attributes all of the event data"
+        def __getattr__(self,k):
+            return self.data[k]
+        pass
+    time = np.linspace(0,10,11)
+    x,y = np.sin(time),np.cos(time)
+    e = Events_with_X(time, **dict(x=x,y=y))
+    npt.assert_equal(e.x, e.data['x'])
+    npt.assert_equal(e.y, e.data['y'])
+    slice_of_e = e[:4]
+    slice_of_e.x # should not raise attribute error
+    slice_of_e.y # should not raise attribute error
+    npt.assert_equal(slice_of_e.x, x[:4])
+    npt.assert_equal(slice_of_e.y, y[:4])
+    assert(slice_of_e.__class__ == Events_with_X)
+
+def test_epochs_subclass_slicing():
+    "Subclassing Epochs should preserve the subclass after slicing"
+    class Epochs_with_X(ts.Epochs):
+        "An epoch class with extra 'stuff'"
+        def total_duration(self):
+            """Duration array for the epoch"""
+            # XXX: bug in duration after slicing - attr_onread should be reset
+            # after slicing
+            #return self.duration.sum()
+            return (self.stop - self.start).sum()
+
+    time_0 = list(range(10))
+    e = Epochs_with_X(time_0, duration=.2)
+    npt.assert_equal(e.total_duration(), ts.TimeArray(2.0))
+
+    slice_of_e = e[:5]
+    npt.assert_equal(slice_of_e.total_duration(), ts.TimeArray(1.0))
+    assert(slice_of_e.__class__ == Epochs_with_X)
+
+def test_Epochs_duration_after_slicing():
+    "some attributes which get set on read should be reset after slicing"
+    e = ts.Epochs(list(range(10)),duration=.1)
+    npt.assert_equal(len(e.duration), len(e))
+    slice_of_e = e[:3]
+    npt.assert_equal(len(slice_of_e.duration), len(slice_of_e))
+
+def test_UniformTime_preserves_uniformity():
+    "Uniformity: allow ops which keep it, and deny those which break it"
+    utime = ts.UniformTime(t0=0, length=10, sampling_rate=1)
+
+    def assign_to_one_element_of(t): t[0]=42
+    with pytest.raises(ValueError) as e_info:
+        assign_to_one_element_of(utime)
+
+    # same as utime, but starting 10s later
+    utime10 = ts.UniformTime(t0=10, length=10, sampling_rate=1)
+    utime += 10 # constants treated as having same units as utime
+    npt.assert_equal(utime,utime10)
+
+    # same as utime, but with a lower sampling rate
+    utime_2 = ts.UniformTime(t0=10, length=10, sampling_interval=2)
+    utime += np.arange(10) # make utime match utime_2
+    npt.assert_equal(utime,utime_2)
+    npt.assert_equal(utime.sampling_interval,utime_2.sampling_interval)
+
+    utime = ts.UniformTime(t0=5, length=10, sampling_rate=1)
+    utime *= 2 # alternative way to make utime match utime_2
+    npt.assert_equal(utime.sampling_interval,utime_2.sampling_interval)
+    npt.assert_equal(utime.sampling_rate,utime_2.sampling_rate)
+
+    nonuniform = np.concatenate((list(range(2)),list(range(3)), list(range(5))))
+    def iadd_nonuniform(t): t+=nonuniform
+    with pytest.raises(ValueError) as e_info:
+        iadd_nonuniform(utime)
+
+def test_index_int64():
+    "indexing with int64 should still return a valid TimeArray"
+    a = list(range(10))
+    b = ts.TimeArray(a)
+    assert b[0] == b[np.int64(0)]
+    assert repr(b[0]) == repr(b[np.int64(0)])
+    assert b[0] == b[np.int32(0)]
+    assert repr(b[0]) == repr(b[np.int32(0)])
+
+
+def test_timearray_math_functions():
+    "Calling TimeArray.min() .max(), mean() should return TimeArrays"
+    a = np.arange(2, 11)
+    for f in ['min', 'max', 'mean', 'ptp', 'sum']:
+        for tu in ['s', 'ms', 'ps', 'D']:
+            b = ts.TimeArray(a, time_unit=tu)
+            npt.assert_(getattr(b, f)().__class__ == ts.TimeArray)
+            npt.assert_(getattr(b, f)().time_unit == b.time_unit)
+            # comparison with unitless should convert to the TimeArray's units
+            npt.assert_(getattr(b, f)() == getattr(a, f)())
+
+
+def test_timearray_var_prod():
+    """
+    Variance and product change the TimeArray units, so they are not
+    implemented and raise an error
+    """
+    a = ts.TimeArray(list(range(10)))
+    with pytest.raises(NotImplementedError) as e_info:
+        a.var()
+    with pytest.raises(NotImplementedError) as e_info:
+        a.prod()

@@ -1,6 +1,6 @@
 """
 ==============================================
-Caclulation of Signal to noise and information
+Calculation of signal-to-noise and information
 ==============================================
 
 This method is based on ideas described in [Borst1999]_ (Figure 2) and
@@ -12,7 +12,7 @@ The estimate of the information is based on the formula
 
 .. math::
 
-      I(S,R) = \int_{0}^{Nyquist}log_2(1+SNR(\omega)d\omega
+      I(S,R) = \int_{0}^{Nyquist}log_2(1+SNR(\omega))d\omega
 
 
 Where $SNR(\omega)$ is the ratio of the signal power and the noise power at the
@@ -21,9 +21,9 @@ channel and is an upper bound for all other cases.
 
 The signal power is estimated as the power of the mean response to repeated
 presentations of the same signal and the noise power is calculated as the
-average of the power in the deviation from this average in each trial
+average of the power in the deviation from this average in each trial.
 
-We import the neccesary modules:
+We import the necessary modules:
 
 """
 
@@ -59,8 +59,8 @@ fig_tseries = []
 """
 
 We add different levels of noise to the ar_seq variable, in order to
-demonstrate the effects of adding noise on signal to noise ratio, as well as
-the calculated information
+demonstrate the effects of adding noise on signal-to-noise ratio, as well as
+the calculated information.
 
 """
 
@@ -81,7 +81,7 @@ for idx, noise in enumerate([1, 10, 50, 100]):
 
     """
 
-    for trial in  xrange(n_trials):
+    for trial in  range(n_trials):
         sample[-1][trial] += np.random.randn(sample[-1][trial].shape[0]) * noise
 
     """
@@ -113,20 +113,20 @@ for idx, noise in enumerate([1, 10, 50, 100]):
     of the signal and also the response of the system at different repetitions
     is very similar to the original signal.
 
-    .. image:: fig/snr_example_01.png
-
-    A special visualization function :func:`viz.plot_snr` is used in order to
-    display the signal power (blue) and the noise power (green), both in the left
-    sub-plot. In addition, the SNR (blue) and the cumulative information (as a
-    function of frequency bands, starting from low frequencies, in red) are
-    dislplayed in the right subplot.
-
     """
 
     tseries = ts.TimeSeries(sample[-1], sampling_rate=1.)
     fig_snr.append(viz.plot_snr(tseries))
 
 """
+
+.. image:: fig/snr_example_01.png
+
+A special visualization function :func:`viz.plot_snr` is used in order to
+display the signal power (blue) and the noise power (green), both in the
+left subplot. In addition, the SNR (blue) and the cumulative information
+(as a function of frequency bands, starting from low frequencies, in red)
+are displayed in the right subplot.
 
 .. image:: fig/snr_example_02.png
 
@@ -136,8 +136,8 @@ signal.
 .. image:: fig/snr_example_03.png
 
 The signal power remains rather similar, but the noise power increases
-(across all bands). As a consequence, the signal to noise ratio decreases and the
-accumulated information decreases
+(across all bands). As a consequence, the signal-to-noise ratio decreases and the
+accumulated information decreases.
 
 .. image:: fig/snr_example_04.png
 
@@ -157,8 +157,9 @@ overwhelmed with noise:
 .. image:: fig/snr_example_08.png
 
 Finally, we use :func:`plot_snr_diff` in order to compare information
-transmission (on the left) and the signal to noise ratio (on the right) between
+transmission (on the left) and the signal-to-noise ratio (on the right) between
 the two last noise levels:
+
 """
 
 ts1 = ts.TimeSeries(sample[-1], sampling_rate=1.)
@@ -170,15 +171,13 @@ plt.show()
 
 .. image:: fig/snr_example_09.png
 
-
 References
 
-    .. [Hsu2004] Hsu A, Borst A and Theunissen, FE (2004) Quantifying
-    variability in neural responses ans its application for the validation of
-    model predictions. Network: Comput Neural Syst 15:91-109
+.. [Hsu2004] Hsu A, Borst A and Theunissen, FE (2004) Quantifying
+variability in neural responses ans its application for the validation of
+model predictions. Network: Comput Neural Syst 15:91-109
 
-    .. [Borst1999] Borst A and Theunissen FE (1999) Information theory and
-    neural coding. Nat Neurosci 2:947-957
-
+.. [Borst1999] Borst A and Theunissen FE (1999) Information theory and
+neural coding. Nat Neurosci 2:947-957
 
 """
