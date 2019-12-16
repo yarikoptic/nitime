@@ -5,35 +5,35 @@ Uploaders: Yaroslav Halchenko <debian@onerussian.com>,
 Section: python
 Priority: extra
 Build-Depends: debhelper (>= 9~),
-               python-all,
+               python3-all,
                dh-python,
-               python-numpy,
-               python-scipy,
-               python-matplotlib,
-               python-tk,
-               python-sphinx,
-               python-nose,
-               python-networkx,
-               python-nibabel,
-               python-setuptools,
-               python-pytest,
+               python3-numpy,
+               python3-scipy,
+               python3-matplotlib,
+               python3-tk,
+               python3-sphinx,
+               python3-nose,
+               python3-networkx,
+               python3-nibabel,
+               python3-setuptools,
+               python3-pytest,
                graphviz,
 Standards-Version: 4.3.0
 Vcs-Browser: http://github.com/yarikoptic/nitime
 Vcs-Git: git://github.com/yarikoptic/nitime.git
 Homepage: http://nipy.org/nitime
 
-Package: python-nitime
+Package: python3-nitime
 Architecture: all
-Depends: ${python:Depends},
+Depends: ${python3:Depends},
          ${shlibs:Depends},
          ${misc:Depends},
-         python-numpy,
-         python-scipy
-Recommends: python-matplotlib,
-            python-nose,
-            python-nibabel,
-            python-networkx
+         python3-numpy,
+         python3-scipy
+Recommends: python3-matplotlib,
+            python3-nose,
+            python3-nibabel,
+            python3-networkx
 Description: timeseries analysis for neuroscience data (nitime)
  Nitime is a Python module for time-series analysis of data from
  neuroscience experiments.  It contains a core of numerical algorithms
@@ -49,7 +49,7 @@ Section: doc
 Depends: ${misc:Depends},
          libjs-jquery,
          libjs-underscore
-Suggests: python-nitime
+Suggests: python3-nitime
 Description: timeseries analysis for neuroscience data (nitime) -- documentation
  Nitime is a Python module for time-series analysis of data from
  neuroscience experiments.

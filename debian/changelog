@@ -1,3 +1,9 @@
+nitime (0.8.1-1) UNRELEASED; urgency=medium
+
+  * New upstream version.
+
+ -- Michael R. Crusoe <michael.crusoe@gmail.com>  Sun, 15 Dec 2019 15:32:08 +0100
+
 nitime (0.7-2) unstable; urgency=high
 
   * Use mathjax sphinx.ext if no pngmath is available (Closes: #922256)
