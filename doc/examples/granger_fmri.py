@@ -20,16 +20,16 @@ terms of a time-delayed auto-regressive model of the form:
 
    x_t = \sum_{i=1}^{n}a_i x_{t-i} + \epsilon_t
 
-Here, a the past behaviour of a single time-series is used in order to predict
+Here, the past behaviour of a single time-series is used in order to predict
 the current value of the time-series. In Granger 'causality' analysis, we test
 whether the addition of a prediction of the time-series from another
-time-series through a multi-variate auto-regressive model may improve our
+time-series through a multivariate auto-regressive model may improve our
 prediction of the present behavior of the time-series (reducing the value of
 the error term $\epsilon_t$):
 
 .. math::
 
-   x_t = \sum_{i=1}^{n}a_i x_{t-i} + b_i y_{t-i} + \epsilon_t
+   x_t = \sum_{i=1}^{n}(a_i x_{t-i} + b_i y_{t-i}) + \epsilon_t
 
 
 In our implementation of the algorithms used for this analysis, we follow
@@ -50,7 +50,6 @@ import os
 
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.mlab import csv2rec
 
 import nitime
 import nitime.analysis as nta
@@ -77,7 +76,9 @@ We read in the resting state fMRI data into a recarray from a csv file:
 
 data_path = os.path.join(nitime.__path__[0], 'data')
 
-data_rec = csv2rec(os.path.join(data_path, 'fmri_timeseries.csv'))
+fname = os.path.join(data_path, 'fmri_timeseries.csv')
+
+data_rec = np.genfromtxt(fname, dtype=float, delimiter=',', names=True)
 
 roi_names = np.array(data_rec.dtype.names)
 nseq = len(roi_names)
@@ -110,7 +111,7 @@ G = nta.GrangerAnalyzer(time_series, order=1)
 """
 
 For comparison, we also initialize a CoherenceAnalyzer and a
-CorrelationAnalyzer, with the same TimeSeries object
+CorrelationAnalyzer, with the same TimeSeries object:
 
 """
 
@@ -175,7 +176,7 @@ misattribution of the direction and magnitude of dependence between time-series
 in fMRI data (for a particularly extreme example of that see
 [David2008]_). Therefore, as suggested by Roebroeck et al. [Roebroeck2005]_ and
 [Kayser2009]_ we turn to examine the difference between $F_{x\rightarrow y}$ and
-$F_{y\rightarrow x}$
+$F_{y\rightarrow x}$.
 
 """
 
@@ -205,7 +206,7 @@ References
 .. [Pearl2009] J. Pearl (2009). Causal inference in statistics: An
    overview. Statistics surveys 3: 96-146.
 
-.. [Ding2008] M. Ding, Y. Chen, S.L. Bressler (2006) Granger causality:
+.. [Ding2006] M. Ding, Y. Chen, S.L. Bressler (2006) Granger causality:
    basic theory and application to neuroscience. In Handbook of Time Series
    Analysis, ed. B. Schelter, M. Winterhalder, and J. Timmer, Wiley-VCH
    Verlage, 2006: 451-474

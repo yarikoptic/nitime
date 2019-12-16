@@ -3,19 +3,18 @@
 .. _multi-taper-coh:
 
 
-================================
-Multi-taper coherence estimation
-================================
+===============================
+Multitaper coherence estimation
+===============================
 
 
 Coherence estimation can be done using windowed-spectra. This is the method
-used in the example :ref:`resting-state`. In addition, multi-taper spectral
+used in the example :ref:`resting-state`. In addition, multitaper spectral
 estimation can be used in order to calculate coherence and also confidence
 intervals for the coherence values that result (see :ref:`multi-taper-psd`)
 
-
 The data analyzed here is an fMRI data-set contributed by Beth Mormino. The
-data is taken from a single subject in a"resting-state" scan, in which subjects
+data is taken from a single subject in a "resting-state" scan, in which subjects
 are fixating on a cross and maintaining alert wakefulness, but not performing
 any other behavioral task.
 
@@ -29,7 +28,6 @@ import os
 
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.mlab import csv2rec
 import scipy.stats.distributions as dist
 from scipy import fftpack
 
@@ -53,7 +51,9 @@ We read in the data into a recarray from a csv file:
 
 data_path = os.path.join(nitime.__path__[0], 'data')
 
-data_rec = csv2rec(os.path.join(data_path, 'fmri_timeseries.csv'))
+fname = os.path.join(data_path, 'fmri_timeseries.csv')
+
+data_rec = np.genfromtxt(fname, dtype=float, delimiter=',', names=True)
 
 
 """
@@ -99,7 +99,7 @@ tapers, eigs = alg.dpss_windows(n_samples, NW, K)
 
 """
 
-We multiply the data by the tapers and derive the fourier transform and the
+We multiply the data by the tapers and derive the Fourier transform and the
 magnitude of the squared spectra (the power) for each tapered time-series:
 
 """
@@ -253,17 +253,15 @@ coh = np.mean(coh_mat[:, :, freq_idx], -1)  # Averaging on the last dimension
 
 """
 
-The next line calls the visualization routine which displays the data
+The next line calls the visualization routine which displays the data:
 
 """
-
 
 fig01 = drawmatrix_channels(coh,
                             roi_names,
                             size=[10., 10.],
                             color_anchor=0,
                             title='MTM Coherence')
-
 
 """
 
@@ -275,16 +273,14 @@ We start by initializing a TimeSeries object with this data and with the
 sampling_interval provided above. We set the metadata 'roi' field with the ROI
 names.
 
-
 """
 
 T = TimeSeries(pdata, sampling_interval=TR)
 T.metadata['roi'] = roi_names
 
-
 """
 
-We initialize an MTCoherenceAnalyzer object with the TimeSeries object
+We initialize an MTCoherenceAnalyzer object with the TimeSeries object:
 
 """
 
@@ -298,8 +294,8 @@ The relevant indices in the Analyzer object are derived:
 
 freq_idx = np.where((C2.frequencies > 0.02) * (C2.frequencies < 0.15))[0]
 
-
 """
+
 The call to C2.coherence triggers the computation and this is averaged over the
 frequency range of interest in the same line and then displayed:
 
@@ -312,15 +308,13 @@ fig02 = drawmatrix_channels(coh,
                             color_anchor=0,
                             title='MTCoherenceAnalyzer')
 
-
 """
 
 .. image:: fig/multi_taper_coh_02.png
 
-
 For comparison, we also perform the analysis using the standard
 CoherenceAnalyzer object, which does the analysis using Welch's windowed
-periodogram, instead of the multi-taper spectral estimation method (see
+periodogram, instead of the multitaper spectral estimation method (see
 :ref:`resting_state` for a more thorough analysis of this data using this
 method):
 
@@ -338,14 +332,11 @@ fig03 = drawmatrix_channels(coh,
                             color_anchor=0,
                             title='CoherenceAnalyzer')
 
-
 """
 
 .. image:: fig/multi_taper_coh_03.png
 
-
 plt.show() is called in order to display the figures:
-
 
 """
 
